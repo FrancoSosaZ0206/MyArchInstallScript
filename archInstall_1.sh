@@ -243,7 +243,7 @@ echo "Entering chroot environment. Run ./archInstall_2.sh to finish setup."
 } >> /mnt/temp_vars.sh
 
 # make temp_vars.sh readable only by root user
-chmod 600 /mnt/temp_vars.sh
+# chmod 600 /mnt/temp_vars.sh
 
 # chroot into the installation
 arch-chroot /mnt
