@@ -4,7 +4,7 @@
 # ############################################# #
 # Import variables from part 1
 
-if [ -f /vars.sh ]; then
+if [ -f /temp_vars.sh ]; then
     source /temp_vars.sh
 else
     echo "Error: Variable file /temp_vars.sh not found!"
