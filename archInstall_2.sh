@@ -48,7 +48,7 @@ sed -i "/^#DisableSandbox/a ILoveCandy" /etc/pacman.conf
 # Totally needed.
 
 # output the changes and confirm before continuing:
-head -n 30 /etc/pacman.conf
+head -n 60 /etc/pacman.conf
 read -p "Press Enter to continue..."
 
 # Update pacman before proceeding:
