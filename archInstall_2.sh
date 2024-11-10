@@ -138,7 +138,7 @@ fi
 
 
 # Clean the screen
-clear
+# clear
 # Print checkout message
 echo -e "\nInstallation complete! Run:\n\numount -a\nreboot\n\nEnjoy your new Arch Linux System! :)"
 
