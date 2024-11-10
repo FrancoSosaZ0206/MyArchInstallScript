@@ -36,10 +36,10 @@ echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 # all the packages.
 
 # Enable colored output
-sed -i 's/^Color/Color/' /etc/pacman.conf
+sed -i "s/^Color/Color/" /etc/pacman.conf
 
-# Enable parralel downloads
-sed -i 's/^#ParallelDownloads/ParallelDownloads' /etc/pacman.conf
+# Enable parallel downloads
+sed -i "s/^#ParallelDownloads/ParallelDownloads" /etc/pacman.conf
 
 # Add ILoveCandy to the misc options for some extra fun
 sed -i "#DisableSandbox/a ILoveCandy" /etc/pacman.conf
