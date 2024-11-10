@@ -94,6 +94,8 @@ echo
 # Start the partitioning
 # -s, --script option allows to run parted from script automatedly.
 
+# Clean the screen
+clear
 # Print disk layout
 lsblk
 # Prompt user to select a disk
@@ -154,13 +156,18 @@ vgcreate volgroup0 /dev/mapper/lvm
 lvcreate -L 50GB volgroup0 -n lv_root   # root volume (50GB is more than enough to fill our system with programs)
 lvcreate -l 100%FREE volgroup0 -n lv_home  # home vol. (rest of the disk)
 
+# Clean the screen
+clear
 # confirm changes by showing them to the user,
 # and wait for him to press enter after each of these commands
 vgdisplay
 read -p "Press Enter to continue..."
+clear
 lvdisplay
 read -p "Press Enter to continue..."
 
+# Clean the screen
+clear
 # Insert a kernel module
 modprobe dm_mod
 vgscan
@@ -201,6 +208,8 @@ pacstrap /mnt base --noconfirm --needed
 # Generate the file:
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
+# Clean the screen
+clear
 # Show user the results
 cat /mnt/etc/fstab
 # Pause until user has read and presses enter
@@ -211,11 +220,17 @@ read -p "Press Enter to continue..."
 # ############################################# #
 # SECTION 9 - Chroot into the installation
 
+# Clean the screen
+clear
+
 echo "Downloading the second part of the setup script..."
 
 # fetch the 2nd part of the script into the installation
 curl -o /mnt/archInstall_2.sh https://github.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_2.sh
 chmod +x /mnt/archInstall_2.sh
+
+# Clean the screen
+clear
 
 echo "Entering chroot environment. Run ./archInstall_2.sh to finish setup."
 
