@@ -69,14 +69,16 @@ PACKAGES="base-devel \
           gnome gnome-tweaks gnome-themes-extra \
           networkmanager bluez blueman bluez-utils \
           dosfstools mtools os-prober sudo \
-          gparted htop man neofetch \
-          firefox rhythmbox reaper easytag picard qjackctl \
-          gimp krita obs-studio \
-          nano vim libreoffice-fresh"
+          gparted htop man neofetch"
 
 # Perform the installation (enjoy!)
 pacman -S "${PACKAGES}" --noconfirm --needed
 
+
+# install later (with pacman):
+# pacman -S "firefox rhythmbox reaper easytag picard qjackctl \
+#          gimp krita obs-studio \
+#          nano vim libreoffice-fresh" --noconfirm --needed
 
 # left to install (via flathub and AUR):
 # vs-code (visual-studio-code-bin) (using yay)
