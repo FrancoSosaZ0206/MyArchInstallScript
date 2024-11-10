@@ -214,7 +214,7 @@ read -p "Press Enter to continue..."
 echo "Downloading the second part of the setup script..."
 
 # fetch the 2nd part of the script into the installation
-curl -o /mnt/fransArchInstallScript_part2.sh https://github.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_2.sh
+curl -o /mnt/archInstall_2.sh https://github.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_2.sh
 chmod +x /mnt/archInstall_2.sh
 
 echo "Entering chroot environment. Run ./archInstall_2.sh to finish setup."
