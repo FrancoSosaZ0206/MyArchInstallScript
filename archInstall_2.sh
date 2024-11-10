@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 # Fran's Arch Linux Automated Installation Script (part 2)
 
 # ############################################# #
