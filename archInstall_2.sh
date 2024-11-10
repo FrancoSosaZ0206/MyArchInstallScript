@@ -36,7 +36,7 @@ echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 # all the packages.
 
 # Enable colored output
-sed -i "s/^Color/Color/" /etc/pacman.conf
+sed -i "s/^#Color/Color/" /etc/pacman.conf
 
 # Enable parallel downloads
 sed -i "s/^#ParallelDownloads/ParallelDownloads" /etc/pacman.conf
@@ -88,7 +88,7 @@ pacman -S "${PACKAGES}" --noconfirm --needed
 # SECTION 13 - Generating RAM Disk(s) for our Kernel(s)
 
 # Edit mkcpio config file for our encryption to work
-sed -i 's/^HOOKS=(base /HOOKS=(base encrypt lvm2 /' /etc/mkinitcpio.conf
+sed -i "s/^HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block/a encrypt lvm2/" /etc/mkinitcpio.conf
 
 
 # Generate initramfs for each of the previously installed kernels:
@@ -101,8 +101,8 @@ mkinitcpio -p linux-lts
 # SECTION 14 - Post-Installation (misc.) Setup
 
 # Set locales
-sed -i 's/^#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
-sed -i 's/^#es_AR.UTF-8/es_AR.UTF-8/' /etc/locale.gen
+sed -i "s/^#en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
+sed -i "s/^#es_AR.UTF-8/es_AR.UTF-8/" /etc/locale.gen
 
 # Generate locales
 locale-gen
