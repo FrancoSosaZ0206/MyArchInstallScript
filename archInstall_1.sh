@@ -229,6 +229,9 @@ echo "Downloading the second part of the setup script..."
 curl -o /mnt/archInstall_2.sh https://raw.githubusercontent.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_2.sh
 chmod +x /mnt/archInstall_2.sh
 
+ls /mnt/
+read -p "Press Enter to continue..."
+
 # Clean the screen
 clear
 
