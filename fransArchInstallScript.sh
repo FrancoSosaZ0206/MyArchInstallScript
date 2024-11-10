@@ -23,9 +23,6 @@ WIFI_PASSWD=""
 KEYMAP=""
 TIMEZONE=""
 
-# Store packages in groups in a variable
-# for easier readability
-PACKAGES=""
 
 
 
@@ -214,168 +211,27 @@ read -p "Press Enter to continue..."
 # ############################################# #
 # SECTION 9 - Chroot into the installation
 
+echo "Downloading the second part of the setup script..."
+
+# fetch the 2nd part of the script into the installation
+curl -o /mnt/fransArchInstallScript_part2.sh https://github.com/FrancoSosaZ0206/MyArchInstallScript/main/fransArchInstallScript_part2.sh
+chmod +x /mnt/fransArchInstallScript_part2.sh
+
+echo "Entering chroot environment. Run ./fransArchInstallScript_part2.sh to finish setup."
+
+# Export common variables to a temporary file:
+{
+    echo "INSTALLATION_ROOT_PASSWD=${INSTALLATION_ROOT_PASSWD}"
+    echo "USERNAME=${USERNAME}"
+    echo "USER_PASSWD=${USER_PASSWD}"
+    echo "DISK=${DISK}"
+} >> /mnt/temp_vars.sh
+
+# make temp_vars.sh readable only by root user
+chmod 600 /mnt/temp_vars.sh
+
+# chroot into the installation
 arch-chroot /mnt
 
 # ############################################# #
-# SECTION 10 - Setting up users
-
-# Set installation's root password
-echo "root:${INSTALLATION_ROOT_PASSWD}" | chpasswd
-
-# Create a new user
-useradd -m -g users -G wheel -s /bin/bash "${USERNAME}"
-
-# Set user's password
-# for simplicity's sake,
-# it'll be the same as root for now.
-echo "${USERNAME}:${USER_PASSWD}" | chpasswd
-
-# Grant the newly created user super user (sudo) privileges
-echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
-
-
-# ############################################# #
-# SECTION 11 - Configure & Speed Up Pacman
-# This will save a TON of time when downloading
-# all the packages.
-
-# Traditional method (w/o script):
-# Download nano
-# pacman -S nano --noconfirm
-
-# Open pacman's config file
-# sudo nano /etc/pacman.conf
-
-# Uncomment these lines
-#Color
-#ParallelDownloads = 5
-
-# And add this line
-# ILoveCandy
-
-# ---------------------------
-
-# Automated method (with script):
-# Enable colored output
-sed -i 's/^Color/Color/' /etc/pacman.conf
-
-# Enable parralel downloads
-sed -i 's/^#ParallelDownloads/ParalleDownloads' /etc/pacman.conf
-
-# Add ILoveCandy for some extra fun
-echo "ILoveCandy" >> /etc/pacman.conf
-# Super important, of course.
-# Mhm.
-# Totally needed.
-
-# Update pacman before proceeding:
-pacman -Sy --noconfirm
-
-
-
-# ############################################# #
-# SECTION 12 - Install All The Packages
-
-
-# base system
-PACKAGES+="base-devel "
-
-# grub and efi
-PACKAGES+="grub efibootmgr "
-
-# linux kernels: normal and long-term-support (lts)
-PACKAGES+="linux linux-firmware linux-headers linux-lts linux-lts-headers "
-
-# LVM
-PACKAGES+="lvm2 "
-
-# GPU drivers (nvidia in my case):
-PACKAGES+="nvidia nvidia-utils nvidia-lts "
-
-# GNOME Desktop environment
-PACKAGES+="gnome gnome-tweaks gnome-themes-extra "
-
-# wifi and bluetooth
-PACKAGES+="networkmanager bluez blueman bluez-utils"
-
-# other utilities and necessary packages
-PACKAGES+="dosfstools mtools os-prober sudo "
-PACKAGES+="gparted htop man neofetch "
-
-# ... and the programs I always use:
-# Browser
-PACKAGES+="firefox "
-
-# Audio programs
-PACKAGES+="rhythmbox reaper easytag picard qjackctl "
-
-# Art / photo editing software
-PACKAGES+="gimp krita "
-
-# Video recording / sreaming
-PACKAGES+="obs-studio "
-
-# text editors and office suite
-PACKAGES+="nano vim libreoffice-fresh"
-
-# Perform the installation (enjoy!)
-pacman -S "${PACKAGES}" --noconfirm --needed
-
-
-# left to install (via flathub and AUR):
-# vs-code (visual-studio-code-bin) (using yay)
-# extension manager (better than GNOME's extensions) (flatpak, better to just install it through GNOME Software)
-# DaVinci Resolve
-
-
-# ############################################# #
-# SECTION 13 - Generating RAM Disk(s) for our Kernel(s)
-
-# Edit mkcpio config file for our encryption to work
-# sed -i 's/^HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block filesystems fsck)/HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block encrypt lvm2 filesystems fsck)' /etc/mkinitcpio.conf
-# Alternate, more concise way of doing this (IN USE):
-sed -i 's/^HOOKS=/ s/block/& encrypt lvm2/' /etc/mkinitcpio.conf
-
-# Generate initramfs for each of the previously installed kernels:
-mkinitcpio -p linux
-mkinitcpio -p linux-lts
-
-
-
-# ############################################# #
-# SECTION 14 - Post-Installation (misc.) Setup
-
-# Set locales
-sed -i 's/^#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
-sed -i 's/^#es_AR.UTF-8/es_AR.UTF-8/' /etc/locale.gen
-
-# Generate locales
-locale-gen
-
-# Add our encrypted volume to the GRUB config file
-sed -i "s/^GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3/& cryptdevice=${DISK}4:volgroup0/" /etc/default/grub
-
-# Mount EFI partition (the 1st we created)
-mount --mkdir "${DISK}1" /boot/EFI
-
-# Install GRUB
-grub-install --target=x86_64-efi --bootloader-id=grub_uefi --recheck
-
-# Copy grub locale file into our directory
-cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
-
-# Make grub config
-grub-mkconfig -o /boot/grub/grub.cfg
-
-# Enable GNOME greeter
-systemctl enable gdm
-
-# Enable wifi
-systemctl enable NetworkManager
-
-# We're done! Exit from our installation, unmount everything and reboot.
-exit
-umount -R /mnt # umount -a
-reboot
-
-# Enjoy your new Arch Linux installation! :)
+# Continued in part 2!
