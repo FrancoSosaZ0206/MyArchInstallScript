@@ -39,7 +39,7 @@ echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
 sed -i "s/^#Color/Color/" /etc/pacman.conf
 
 # Enable parallel downloads
-sed -i "s/^#ParallelDownloads/ParallelDownloads" /etc/pacman.conf
+sed -i "s/^#ParallelDownloads/ParallelDownloads/1" /etc/pacman.conf
 
 # Add ILoveCandy to the misc options for some extra fun
 sed -i "#DisableSandbox/a ILoveCandy" /etc/pacman.conf
@@ -88,7 +88,7 @@ pacman -S "${PACKAGES}" --noconfirm --needed
 # SECTION 13 - Generating RAM Disk(s) for our Kernel(s)
 
 # Edit mkcpio config file for our encryption to work
-sed -i "s/^HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block /& encrypt lvm2/" /etc/mkinitcpio.conf
+sed -i "s/^HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block /& encrypt lvm2/1" /etc/mkinitcpio.conf
 
 
 # Generate initramfs for each of the previously installed kernels:
@@ -101,17 +101,17 @@ mkinitcpio -p linux-lts
 # SECTION 14 - Post-Installation (misc.) Setup
 
 # Set locales
-sed -i "s/^#en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
-sed -i "s/^#es_AR.UTF-8/es_AR.UTF-8/" /etc/locale.gen
+sed -i "s/^#en_US.UTF-8/en_US.UTF-8/1" /etc/locale.gen
+sed -i "s/^#es_AR.UTF-8/es_AR.UTF-8/1" /etc/locale.gen
 
 # Generate locales
 locale-gen
 
 # Add our encrypted volume to the GRUB config file
-sed -i "s/^GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3/& cryptdevice=${DISK}4:volgroup0/" /etc/default/grub
+sed -i "s/^GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3/& cryptdevice=${DISK}4:volgroup0/1" /etc/default/grub
 
 # Enabling os-prober to detect multi-os systems in GRUB:
-sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false" /etc/default/grub
+sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/1" /etc/default/grub
 
 # Mount EFI partition (the 1st we created)
 mount --mkdir "${DISK}1" /boot/EFI
