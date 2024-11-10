@@ -88,7 +88,7 @@ pacman -S "${PACKAGES}" --noconfirm --needed
 # SECTION 13 - Generating RAM Disk(s) for our Kernel(s)
 
 # Edit mkcpio config file for our encryption to work
-sed -i "s/^HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block/a encrypt lvm2/" /etc/mkinitcpio.conf
+sed -i "s/^HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block /& encrypt lvm2/" /etc/mkinitcpio.conf
 
 
 # Generate initramfs for each of the previously installed kernels:
