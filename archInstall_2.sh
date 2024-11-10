@@ -41,11 +41,15 @@ sed -i 's/^Color/Color/' /etc/pacman.conf
 # Enable parralel downloads
 sed -i 's/^#ParallelDownloads/ParallelDownloads' /etc/pacman.conf
 
-# Add ILoveCandy for some extra fun
-echo "ILoveCandy" >> /etc/pacman.conf
+# Add ILoveCandy to the misc options for some extra fun
+sed -i "#DisableSandbox/a ILoveCandy" /etc/pacman.conf
 # Super important, of course.
 # Mhm.
 # Totally needed.
+
+# output the changes and confirm before continuing:
+head -n 30 /etc/pacman.conf
+read -p "Press Enter to continue..."
 
 # Update pacman before proceeding:
 pacman -Sy --noconfirm
