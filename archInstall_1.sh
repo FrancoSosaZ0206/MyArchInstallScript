@@ -51,7 +51,6 @@ while ! nmcli -t -f DEVICE,STATE connection show --active | grep -q 'connected$'
     else
         echo "Successfully connected to $WIFI_SSID."
     fi
-        
 done
 
 # Prompt the user to select their local timezone (helps with mirrors)
