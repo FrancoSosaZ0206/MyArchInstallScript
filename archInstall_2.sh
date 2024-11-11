@@ -76,7 +76,7 @@ fi
 # Set packages to ignore within GNOME
 GNOME_IGNORE="gnome-contacts,gnome-maps,gnome-music,\
 gnome-weather,gnome-tour,gnome-system-monitor,\
-yelp,totem,malcontent,cheese"
+totem,malcontent,cheese,epiphany"
 # GNOME package group with exclusions and additional packages
 PACKAGES="gnome --ignore ${GNOME_IGNORE} gnome-tweaks gnome-themes-extra"
 
