@@ -107,7 +107,7 @@ read -p "Press Enter to continue..."
 # SECTION 13 - Generating RAM Disk(s) for our Kernel(s)
 
 # Edit mkcpio config file for our encryption to work
-sed -i "s/^HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block /& encrypt lvm2/" /etc/mkinitcpio.conf
+sed -i "s/^HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block/& encrypt lvm2 /" /etc/mkinitcpio.conf
 
 clean
 # confirm changes
