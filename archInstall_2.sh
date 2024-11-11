@@ -10,9 +10,7 @@ if [ ! -f /temp_vars.sh ]; then
     exit 1
 fi
 
-# echo -e "\nData file found!\n"
 source /temp_vars.sh
-# read -p "Data imported. Press Enter to continue..."
 
 
 
@@ -20,13 +18,10 @@ source /temp_vars.sh
 # SECTION 10 - Setting up users
 
 # Set installation's root password
-# echo "Setting up root password..."
 echo "root:${INSTALLATION_ROOT_PASSWD}" | chpasswd
-# read -p "Press Enter to continue..."
 
 
 # Create a new user (if it doesn't exist)
-# echo "Creating user..."
 id -u "${USERNAME}" &>/dev/null || useradd -m -g users -G wheel -s /bin/bash "${USERNAME}"
 
 # Set user's password
@@ -34,10 +29,6 @@ id -u "${USERNAME}" &>/dev/null || useradd -m -g users -G wheel -s /bin/bash "${
 # it'll be the same as root for now.
 echo "${USERNAME}:${USER_PASSWD}" | chpasswd
 
-# Confirm that the user exists by listing all users
-# echo -e "\nUsers on the system:"
-cut -d: -f1 /etc/passwd | grep -E "^root|^${USERNAME}"
-# read -p "Press Enter to continue..."
 
 
 # ############################################# #
@@ -57,16 +48,9 @@ sed -i "/^#DisableSandbox/a ILoveCandy" /etc/pacman.conf
 # Mhm.
 # Totally needed.
 
-# output modified lines for confirmation:
-# echo -e "\nConfirming pacman config changes:"
-# grep -E "^(Color|ParallelDownloads|ILoveCandy)" /etc/pacman.conf
-# read -p "Press Enter to continue..."
-
 # Update pacman before proceeding:
 pacman -Sy --noconfirm
 
-# echo -e "\nPacman optimized!\n"
-# read -p "Press Enter to continue..."
 
 
 # ############################################# #
@@ -89,29 +73,16 @@ if ! pacman -Syu ${PACKAGES} --noconfirm --needed; then
   echo "Error installing packages. Exiting..."
   exit 1
 fi
-# echo "Packages installed successfully."
-# read -p "Press Enter to continue..."
 
-# install later (with pacman):
-# pacman -S "firefox rhythmbox reaper easytag picard qjackctl \
-#          gimp krita obs-studio \
-#          nano vim libreoffice-fresh" --noconfirm --needed
-
-# left to install (via flathub and AUR):
-# vs-code (visual-studio-code-bin) (using yay)
-# extension manager (better than GNOME's extensions) (flatpak, better to just install it through GNOME Software)
-# DaVinci Resolve
 
 
 # ############################################# #
 # SECTION 13 - Generating RAM Disk(s) for our Kernel(s)
 
 # Edit mkcpio config file for our encryption to work
-sed -i "s/^HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block/& encrypt lvm2 /" /etc/mkinitcpio.conf
+sed -i "s/^HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block/& encrypt lvm2/" /etc/mkinitcpio.conf
 
 clear
-# confirm changes
-# less /etc/mkinitcpio.conf
 
 # Generate initramfs for each of the previously installed kernels:
 mkinitcpio -p linux
@@ -127,8 +98,6 @@ sed -i "s/^#en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
 sed -i "s/^#es_AR.UTF-8/es_AR.UTF-8/" /etc/locale.gen
 
 clear
-# confirm changes
-# less /etc/locale.gen
 
 # Generate locales
 locale-gen
@@ -158,10 +127,6 @@ if ! grep -q "^${EXPECTED}$" /etc/default/grub; then
     exit 1
 fi
 
-# clear
-# confirm changes
-# less /etc/default/grub
-
 # Mount EFI partition (the 1st we created)
 mount --mkdir "${DISK}1" /boot/EFI
 
@@ -187,13 +152,69 @@ systemctl enable gdm
 # Enable wifi
 systemctl enable NetworkManager
 
+# Install rest of the packages
+PACKAGES="firefox rhythmbox reaper easytag picard qjackctl \
+         gimp krita obs-studio \
+         nano vim libreoffice-fresh \
+         yt-dlp"
+if ! pacman -Syu ${PACKAGES} --noconfirm --needed; then
+  echo "Error installing packages. Exiting..."
+  exit 1
+fi
+
+# ADD THE AUR REPOSITORY (with yay)
+# Install prerequisites for building AUR packages
+sudo pacman -S git --needed --noconfirm
+
+# Clone the yay repository
+git clone https://aur.archlinux.org/yay.git /yay
+
+# Navigate to the yay directory and install yay
+cd /yay
+makepkg -si --noconfirm
+
+# Install remaining packages through yay and flatpak
+yay -S visual-studio-code-bin davinci-resolve --noconfirm
+flatpak install flathub com.mattjakeman.ExtensionManager com.discordapp.Discord org.gtk.Gtk3theme.Adwaita-dark -y
+
+# Set Spanish (Latin American) as the keyboard layout
+localectl set-x11-keymap latam
+
+# Enable autologin for the user
+sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=yourusername" /etc/gdm/custom.conf
+
+# Set custom keyboard shortcuts
+gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/']"
+
+# Shortcut for Power Off
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ name "Power Off"
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ command "gnome-session-quit --power-off"
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ binding "<Alt>F4"
+
+# Shortcut for Reboot
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/ name "Reboot"
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/ command "gnome-session-quit --reboot"
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/ binding "<Alt>R"
+
+# Shortcut for Suspend
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/ name "Suspend"
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/ command "systemctl suspend"
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/ binding "<Alt>S"
+
+# Shortcut for Opening Music Player (Rhythmbox)
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/ name "Open Music Player"
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/ command "rhythmbox"
+gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/ binding "<Super>M"
+
+# Set Adwaita-dark as the GTK theme
+gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+
+
 # Cleanup
 rm /temp_vars.sh
 
 if [ -f /temp_vars.sh ]; then
     echo "Warning: temp_vars.sh could not be deleted."
-else
-    echo "Temporary file temp_vars.sh successfully deleted."
 fi
 
 
