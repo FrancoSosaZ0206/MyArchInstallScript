@@ -10,9 +10,9 @@ if [ ! -f /temp_vars.sh ]; then
     exit 1
 fi
 
-echo -e "\nData file found!\n"
+# echo -e "\nData file found!\n"
 source /temp_vars.sh
-read -p "Data imported. Press Enter to continue..."
+# read -p "Data imported. Press Enter to continue..."
 
 
 
@@ -20,13 +20,13 @@ read -p "Data imported. Press Enter to continue..."
 # SECTION 10 - Setting up users
 
 # Set installation's root password
-echo "Setting up root password..."
+# echo "Setting up root password..."
 echo "root:${INSTALLATION_ROOT_PASSWD}" | chpasswd
-read -p "Press Enter to continue..."
+# read -p "Press Enter to continue..."
 
 
 # Create a new user (if it doesn't exist)
-echo "Creating user..."
+# echo "Creating user..."
 id -u "${USERNAME}" &>/dev/null || useradd -m -g users -G wheel -s /bin/bash "${USERNAME}"
 
 # Set user's password
@@ -35,9 +35,9 @@ id -u "${USERNAME}" &>/dev/null || useradd -m -g users -G wheel -s /bin/bash "${
 echo "${USERNAME}:${USER_PASSWD}" | chpasswd
 
 # Confirm that the user exists by listing all users
-echo -e "\nUsers on the system:"
+# echo -e "\nUsers on the system:"
 cut -d: -f1 /etc/passwd | grep -E "^root|^${USERNAME}"
-read -p "Press Enter to continue..."
+# read -p "Press Enter to continue..."
 
 
 # ############################################# #
@@ -58,15 +58,15 @@ sed -i "/^#DisableSandbox/a ILoveCandy" /etc/pacman.conf
 # Totally needed.
 
 # output modified lines for confirmation:
-echo -e "\nConfirming pacman config changes:"
-grep -E "^(Color|ParallelDownloads|ILoveCandy)" /etc/pacman.conf
-read -p "Press Enter to continue..."
+# echo -e "\nConfirming pacman config changes:"
+# grep -E "^(Color|ParallelDownloads|ILoveCandy)" /etc/pacman.conf
+# read -p "Press Enter to continue..."
 
 # Update pacman before proceeding:
 pacman -Sy --noconfirm
 
-echo -e "\nPacman optimized!\n"
-read -p "Press Enter to continue..."
+# echo -e "\nPacman optimized!\n"
+# read -p "Press Enter to continue..."
 
 
 # ############################################# #
@@ -89,8 +89,8 @@ if ! pacman -Syu ${PACKAGES} --noconfirm --needed; then
   echo "Error installing packages. Exiting..."
   exit 1
 fi
-echo "Packages installed successfully."
-read -p "Press Enter to continue..."
+# echo "Packages installed successfully."
+# read -p "Press Enter to continue..."
 
 # install later (with pacman):
 # pacman -S "firefox rhythmbox reaper easytag picard qjackctl \
@@ -111,7 +111,7 @@ sed -i "s/^HOOKS=(base udev autodetect microcode modconf kms keyboard keymap con
 
 clean
 # confirm changes
-less /etc/mkinitcpio.conf
+# less /etc/mkinitcpio.conf
 
 # Generate initramfs for each of the previously installed kernels:
 mkinitcpio -p linux
@@ -128,7 +128,7 @@ sed -i "s/^#es_AR.UTF-8/es_AR.UTF-8/" /etc/locale.gen
 
 clear
 # confirm changes
-less /etc/locale.gen
+# less /etc/locale.gen
 
 # Generate locales
 locale-gen
