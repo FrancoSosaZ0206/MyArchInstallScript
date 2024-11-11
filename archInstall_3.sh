@@ -139,8 +139,24 @@ read -p "Press enter to continue..."
 
 
 
+# Add global aliases for yt-dlp commands
+echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' >> ~/.bashrc
+echo 'alias getMusicWithMetadata="yt-dlp -x --audio-format mp3 --audio-quality 0 -P ~/Music"' >> ~/.bashrc
+echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/run/media/fran/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"/run/media/fran/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' >> ~/.bashrc
+
+
+
 # ############################################# #
 # SECTION 17 - Cleanup and Debloat
+
+# Remove the previous script:
+rm /archInstall_2.sh
+
+if [ -f /archInstall_2.sh ]; then
+    clear
+    echo "Warning: archInstall_2.sh could not be deleted."
+    read -p "Press enter to continue..."
+fi
 
 # Remove unnecessary gnome apps (for me)
 PACKAGES="gnome-contacts gnome-maps gnome-music \
@@ -158,6 +174,7 @@ fi
 # Cleanup - Delete this script
 rm -- "$0"
 
+exit 0
 
 
 # ############################################# #
