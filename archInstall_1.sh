@@ -37,7 +37,7 @@ read -p "Enter the keyboard layout (e.g., 'us', 'es', etc.): " KEYMAP
 loadkeys "${KEYMAP}"
 
 # Check if the device is already connected to a network (Wi-Fi/Ethernet)
-while ! nmcli -t -f DEVICE,STATE connection show --active | grep -q 'connected$'; do
+while ! ip addr show | grep -q "state UP"; do
     # Prompt the user to input Wi-Fi information
     read -p "Enter the Wi-Fi SSID (network name): " WIFI_SSID
     read -sp "Enter the Wi-Fi passphrase: " WIFI_PASSWD
@@ -46,7 +46,7 @@ while ! nmcli -t -f DEVICE,STATE connection show --active | grep -q 'connected$'
     iwctl --passphrase "${WIFI_PASSWD}" station wlan0 connect "${WIFI_SSID}"
 
     # If connection wasn't successful
-    if  ! nmcli -t -f DEVICE,STATE connection show --active | grep -q 'connected$'; then
+    if  ! ip addr show | grep -q "state UP"; then
         echo "Failed to connect. Please check the SSID and password and try again."
     else
         echo "Successfully connected to $WIFI_SSID."
