@@ -1,24 +1,69 @@
 #!/usr/bin/bash
 # Fran's Arch Linux Automated Installation Script (part 3)
 
-
 # ############################################# #
-# SECTION 15 - Cleanup and Debloat
+# Import variables from part 1
 
-# Remove the previous script:
-rm /archInstall_2.sh
-
-if [ -f /archInstall_2.sh ]; then
-    clear
-    echo "Warning: archInstall_2.sh could not be deleted."
-    read -p "Press enter to continue..."
+echo -e "\nImporting data...\n"
+if [ ! -f /temp_vars.sh ]; then
+    echo "Error: Data file /temp_vars.sh not found. Could not import data."
+    exit 1
 fi
 
-# Remove unnecessary gnome apps (for me)
-# PACKAGES="gnome-contacts gnome-maps gnome-music \
-#         gnome-weather gnome-tour gnome-system-monitor \
-#         yelp totem malcontent"
-# pacman -Rns $PACKAGES --noconfirm
+source /temp_vars.sh
+
+
+
+# ############################################# #
+# SECTION 15 - Install and Configure Hyprland
+# and its Dependencies
+
+# Define Hyprland and dependencies
+HYPRLAND_PACKAGES="hyprland \
+wayland wayland-protocols xorg-xwayland \
+wl-clipboard grim slurp wf-recorder \
+mako dunst \
+swaybg swaylock swayidle \
+waybar \
+xdg-desktop-portal xdg-desktop-portal-hyprland \
+kitty wofi"
+
+# Install Hyprland and dependencies
+if ! pacman -S ${HYPRLAND_PACKAGES} --noconfirm --needed; then
+  echo "WARNING: could not install Hyprland and its dependencies."
+fi
+
+# Create configuration directory for Hyprland
+mkdir -p ~/.config/hypr
+
+# Basic Hyprland configuration file with Spanish (Latin America) layout
+cat <<EOL > ~/.config/hypr/hyprland.conf
+monitor=,preferred,auto,1
+input {
+    kb_layout = "latam"
+}
+decoration {
+    rounding = 5
+}
+exec-once = swaybg -i /usr/share/backgrounds/gnome/adwaita-day.jpg
+bind = SUPER, RETURN, exec kitty
+bind = SUPER, D, exec wofi --show drun
+EOL
+
+# Set up Wayland session entry for Hyprland (will show as an option on login screen)
+cat <<EOL > /usr/share/wayland-sessions/hyprland.desktop
+[Desktop Entry]
+Name=Hyprland
+Comment=A dynamic tiling Wayland compositor
+Exec=Hyprland
+Type=Application
+DesktopNames=Hyprland
+EOL
+
+# Set Wayland-related environment variables
+echo "XDG_SESSION_TYPE=wayland" | tee -a /etc/environment
+echo "MOZ_ENABLE_WAYLAND=1" | tee -a /etc/environment
+echo "QT_QPA_PLATFORM=wayland" | tee -a /etc/environment
 
 
 
@@ -51,7 +96,7 @@ read -p "Press enter to continue..."
 
 # Enable autologin for the user
 clear
-sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=yourusername" /etc/gdm/custom.conf
+sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=${USERNAME}" /etc/gdm/custom.conf
 read -p "Press enter to continue..."
 
 # Set custom keyboard shortcuts
@@ -91,6 +136,33 @@ read -p "Press enter to continue..."
 clear
 gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
 read -p "Press enter to continue..."
+
+
+
+# ############################################# #
+# SECTION 17 - Cleanup and Debloat
+
+# Remove the previous script:
+rm /archInstall_2.sh
+
+if [ -f /archInstall_2.sh ]; then
+    clear
+    echo "Warning: archInstall_2.sh could not be deleted."
+    read -p "Press enter to continue..."
+fi
+
+# Remove unnecessary gnome apps (for me)
+# PACKAGES="gnome-contacts gnome-maps gnome-music \
+#         gnome-weather gnome-tour gnome-system-monitor \
+#         yelp totem malcontent"
+# pacman -Rns $PACKAGES --noconfirm
+
+# Remove temporary file used for the scripts:
+rm /temp_vars.sh
+
+if [ -f /temp_vars.sh ]; then
+    echo "Warning: temp_vars.sh could not be deleted."
+fi
 
 
 
