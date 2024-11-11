@@ -130,7 +130,7 @@ cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Grant the newly created user sudo privileges
-sudo sed -i "s/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/" /etc/sudoers
+echo '%wheel ALL=(ALL) ALL' | EDITOR='tee -a' visudo
 
 if grep '# %wheel ALL=(ALL) ALL' /etc/sudoers; then
   clear
@@ -166,10 +166,9 @@ cd /yay
 makepkg -si --noconfirm
 
 # Install remaining packages through yay and flatpak
-yay -S visual-studio-code-bin
 
 # if vs code can't be installed with yay, do it with flatpak
-if ! yay -Qs visual-studio-code-bin > /dev/null; then
+if ! yay -S visual-studio-code-bin --noconfirm; then
   flatpak install flathub com.visualstudio.code -y
 fi
 
