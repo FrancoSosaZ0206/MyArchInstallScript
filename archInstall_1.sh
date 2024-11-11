@@ -158,18 +158,18 @@ lvcreate -l 100%FREE volgroup0 -n lv_home  # home vol. (rest of the disk)
 clear
 # confirm changes by showing them to the user,
 # and wait for him to press enter after each of these commands
-vgdisplay
-read -p "Press Enter to continue..."
-clear
-lvdisplay
-read -p "Press Enter to continue..."
+# vgdisplay
+# read -p "Press Enter to continue..."
+# clear
+# lvdisplay
+# read -p "Press Enter to continue..."
 
 # Clear the screen
 clear
 # Insert a kernel module
 modprobe dm_mod
 vgscan
-read -p "Press Enter to continue..."
+# read -p "Press Enter to continue..."
 vgchange -ay
 
 # Format the encrypted partitions
@@ -207,11 +207,11 @@ pacstrap /mnt base --noconfirm --needed
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
 # Clear the screen
-clear
+# clear
 # Show user the results
-cat /mnt/etc/fstab
+# cat /mnt/etc/fstab
 # Pause until user has read and presses enter
-read -p "Press Enter to continue..."
+# read -p "Press Enter to continue..."
 
 
 
@@ -225,12 +225,12 @@ echo "Downloading the second part of the setup script..."
 curl -o /mnt/archInstall_2.sh https://raw.githubusercontent.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_2.sh
 chmod +x /mnt/archInstall_2.sh
 
-ls /mnt/
-read -p "Press Enter to continue..."
+# ls /mnt/
+# read -p "Press Enter to continue..."
 
 clear
 echo "Entering chroot environment..." #... Run ./archInstall_2.sh to finish setup."
-read -p "Press Enter to continue..."
+# read -p "Press Enter to continue..."
 
 # Export common variables to a temporary file:
 {
