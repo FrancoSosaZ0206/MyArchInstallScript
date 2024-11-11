@@ -133,15 +133,32 @@ less /etc/locale.gen
 # Generate locales
 locale-gen
 
+echo -e "\nBefore editing grub:\n\n"
+tail /etc/default/grub
+read -p "Press enter to continue..."
+
 # Add our encrypted volume to the GRUB config file
-sed -i "s/loglevel=3/loglevel=3 cryptdevice=${DISK}4:volgroup0 /" /etc/default/grub
+sed -i "s,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 ,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${DISK}4:volgroup0 ,g" /etc/default/grub
 
 # Enabling os-prober to detect multi-os systems in GRUB:
 sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
 
-clear
+echo -e "\nAfter editing grub:\n\n"
+tail /etc/default/grub
+read -p "Press enter to continue..."
+
+# Define the expected line for verification
+EXPECTED="GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${DISK}4:volgroup0 quiet\""
+
+# Verify that the line matches exactly as expected
+if ! grep -q "^${EXPECTED}$" /etc/default/grub; then
+    echo "Error: GRUB_CMDLINE_LINUX_DEFAULT line was not updated correctly."
+    exit 1
+fi
+
+# clear
 # confirm changes
-less /etc/default/grub
+# less /etc/default/grub
 
 # Mount EFI partition (the 1st we created)
 mount --mkdir "${DISK}1" /boot/EFI
