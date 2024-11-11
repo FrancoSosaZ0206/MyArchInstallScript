@@ -63,14 +63,26 @@ PACKAGES="base-devel \
           linux linux-firmware linux-headers linux-lts linux-lts-headers \
           lvm2 \
           nvidia nvidia-utils nvidia-lts \
-          gnome gnome-tweaks gnome-themes-extra \
           networkmanager bluez blueman bluez-utils \
           dosfstools mtools os-prober sudo \
           gparted htop man neofetch"
 
 # Perform the installation (enjoy!)
-if ! pacman -Syu ${PACKAGES} --noconfirm --needed; then
+if ! pacman -S ${PACKAGES} --noconfirm --needed; then
   echo "Error installing packages. Exiting..."
+  exit 1
+fi
+
+# Set packages to ignore within GNOME
+GNOME_IGNORE="gnome-contacts,gnome-maps,gnome-music,\
+gnome-weather,gnome-tour,gnome-system-monitor,\
+yelp,totem,malcontent,cheese"
+# GNOME package group with exclusions and additional packages
+PACKAGES="gnome --ignore ${GNOME_IGNORE} gnome-tweaks gnome-themes-extra"
+
+# Install GNOME package selection
+if ! pacman -S ${PACKAGES} --noconfirm --needed; then
+  echo "Error installing GNOME. Exiting..."
   exit 1
 fi
 
