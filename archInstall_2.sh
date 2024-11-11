@@ -102,21 +102,11 @@ clear
 # Generate locales
 locale-gen
 
-echo -e "\nBefore editing grub:\n\n"
-head /etc/default/grub
-tail /etc/default/grub
-read -p "Press enter to continue..."
-
 # Add our encrypted volume to the GRUB config file
 sed -i "s,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 ,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${DISK}4:volgroup0 ," /etc/default/grub
 
 # Enabling os-prober to detect multi-os systems in GRUB:
 sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
-
-echo -e "\nAfter editing grub:\n\n"
-head /etc/default/grub
-tail /etc/default/grub
-read -p "Press enter to continue..."
 
 # Define the expected line for verification
 EXPECTED="GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${DISK}4:volgroup0 quiet\""
@@ -139,12 +129,14 @@ cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 # Make grub config
 grub-mkconfig -o /boot/grub/grub.cfg
 
-# Grant the newly created user super user (sudo) privileges
-sed -i "s/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/" /etc/sudoers
+# Grant the newly created user sudo privileges
+sudo sed -i "s/^# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/" /etc/sudoers
 
-clear
-# confirm changes
-less /etc/sudoers
+if grep '# %wheel ALL=(ALL) ALL' /etc/sudoers; then
+  clear
+  echo "ERROR: couldn't grant sudo privileges to $USERNAME."
+  read -p "Press enter to continue..."
+fi
 
 # Enable GNOME greeter
 systemctl enable gdm
@@ -174,43 +166,73 @@ cd /yay
 makepkg -si --noconfirm
 
 # Install remaining packages through yay and flatpak
-yay -S visual-studio-code-bin davinci-resolve --noconfirm
+yay -S visual-studio-code-bin
+
+# if vs code can't be installed with yay, do it with flatpak
+if ! yay -Qs visual-studio-code-bin > /dev/null; then
+  flatpak install flathub com.visualstudio.code -y
+fi
+
+yay -S davinci-resolve
 flatpak install flathub com.mattjakeman.ExtensionManager com.discordapp.Discord org.gtk.Gtk3theme.Adwaita-dark -y
 
 # Set Spanish (Latin American) as the keyboard layout
+clear
 localectl set-x11-keymap latam
+read -p "Press enter to continue..."
 
 # Enable autologin for the user
+clear
 sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=yourusername" /etc/gdm/custom.conf
+read -p "Press enter to continue..."
 
 # Set custom keyboard shortcuts
+clear
 gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/']"
+read -p "Press enter to continue..."
 
 # Shortcut for Power Off
+clear
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ name "Power Off"
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ command "gnome-session-quit --power-off"
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/ binding "<Alt>F4"
+read -p "Press enter to continue..."
 
 # Shortcut for Reboot
+clear
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/ name "Reboot"
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/ command "gnome-session-quit --reboot"
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/ binding "<Alt>R"
+read -p "Press enter to continue..."
 
 # Shortcut for Suspend
+clear
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/ name "Suspend"
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/ command "systemctl suspend"
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/ binding "<Alt>S"
+read -p "Press enter to continue..."
 
 # Shortcut for Opening Music Player (Rhythmbox)
+clear
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/ name "Open Music Player"
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/ command "rhythmbox"
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/ binding "<Super>M"
+read -p "Press enter to continue..."
 
 # Set Adwaita-dark as the GTK theme
+clear
 gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+read -p "Press enter to continue..."
 
 
-# Cleanup
+
+# Cleanup unnecessary gnome apps (for me)
+PACKAGES="gnome-contacts gnome-maps gnome-music \
+        gnome-weather gnome-tour gnome-system-monitor \
+        yelp totem malcontent"
+pacman -Rns $PACKAGES --noconfirm
+
+# Cleanup temporary file
 rm /temp_vars.sh
 
 if [ -f /temp_vars.sh ]; then
