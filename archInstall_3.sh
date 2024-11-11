@@ -142,15 +142,6 @@ read -p "Press enter to continue..."
 # ############################################# #
 # SECTION 17 - Cleanup and Debloat
 
-# Remove the previous script:
-rm /archInstall_2.sh
-
-if [ -f /archInstall_2.sh ]; then
-    clear
-    echo "Warning: archInstall_2.sh could not be deleted."
-    read -p "Press enter to continue..."
-fi
-
 # Remove unnecessary gnome apps (for me)
 # PACKAGES="gnome-contacts gnome-maps gnome-music \
 #         gnome-weather gnome-tour gnome-system-monitor \
