@@ -4,30 +4,39 @@
 # ############################################# #
 # Import variables from part 1
 
-if [ -f /temp_vars.sh ]; then
-    source /temp_vars.sh
-else
-    echo "Error: Variable file /temp_vars.sh not found!"
+if [ ! -f /temp_vars.sh ]; then
+    echo "Error: Data file /temp_vars.sh not found!"
     exit 1
 fi
+
+echo -e "\nData file found!\n\nImporting data...\n"
+source /temp_vars.sh
+read -p "Press Enter to continue..."
+
 
 
 # ############################################# #
 # SECTION 10 - Setting up users
 
 # Set installation's root password
+echo "Setting up root password..."
 echo "root:${INSTALLATION_ROOT_PASSWD}" | chpasswd
+read -p "Press Enter to continue..."
 
-# Create a new user
-useradd -m -g users -G wheel -s /bin/bash "${USERNAME}"
+
+# Create a new user (if it doesn't exist)
+echo "Creating user..."
+id -u "${USERNAME}" &>/dev/null || useradd -m -g users -G wheel -s /bin/bash "${USERNAME}"
 
 # Set user's password
 # for simplicity's sake,
 # it'll be the same as root for now.
 echo "${USERNAME}:${USER_PASSWD}" | chpasswd
 
-# Grant the newly created user super user (sudo) privileges
-echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
+# Confirm that the user exists by listing all users
+echo -e "\nUsers on the system:"
+cut -d: -f1 /etc/passwd | grep -E "^root|^${USERNAME}"
+read -p "Press Enter to continue..."
 
 
 # ############################################# #
@@ -47,13 +56,16 @@ sed -i "/^#DisableSandbox/a ILoveCandy" /etc/pacman.conf
 # Mhm.
 # Totally needed.
 
-# output the changes and confirm before continuing:
-head -n 60 /etc/pacman.conf
+# output modified lines for confirmation:
+echo -e "\nConfirming pacman config changes:"
+grep -E "^(Color|ParallelDownloads|ILoveCandy)" /etc/pacman.conf
 read -p "Press Enter to continue..."
 
 # Update pacman before proceeding:
 pacman -Sy --noconfirm
 
+echo "Pacman optimized!"
+read -p "Press Enter to continue..."
 
 
 # ############################################# #
@@ -72,8 +84,12 @@ PACKAGES="base-devel \
           gparted htop man neofetch"
 
 # Perform the installation (enjoy!)
-pacman -S "${PACKAGES}" --noconfirm --needed
-
+if ! pacman -Syu ${PACKAGES} --noconfirm --needed; then
+  echo "Error installing packages. Exiting..."
+  exit 1
+fi
+echo "Packages installed successfully."
+read -p "Press Enter to continue..."
 
 # install later (with pacman):
 # pacman -S "firefox rhythmbox reaper easytag picard qjackctl \
@@ -92,6 +108,9 @@ pacman -S "${PACKAGES}" --noconfirm --needed
 # Edit mkcpio config file for our encryption to work
 sed -i "s/^HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block /& encrypt lvm2/" /etc/mkinitcpio.conf
 
+clean
+# confirm changes
+less /etc/mkinitcpio.conf
 
 # Generate initramfs for each of the previously installed kernels:
 mkinitcpio -p linux
@@ -106,6 +125,10 @@ mkinitcpio -p linux-lts
 sed -i "s/^#en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
 sed -i "s/^#es_AR.UTF-8/es_AR.UTF-8/" /etc/locale.gen
 
+clear
+# confirm changes
+less /etc/locale.gen
+
 # Generate locales
 locale-gen
 
@@ -114,6 +137,10 @@ sed -i "s/^GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3/& cryptdevice=${DISK}4:volgro
 
 # Enabling os-prober to detect multi-os systems in GRUB:
 sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
+
+clear
+# confirm changes
+less /etc/default/grub
 
 # Mount EFI partition (the 1st we created)
 mount --mkdir "${DISK}1" /boot/EFI
@@ -126,6 +153,13 @@ cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 
 # Make grub config
 grub-mkconfig -o /boot/grub/grub.cfg
+
+# Grant the newly created user super user (sudo) privileges
+echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers
+
+clear
+# confirm changes
+less /etc/sudoers
 
 # Enable GNOME greeter
 systemctl enable gdm
@@ -143,10 +177,10 @@ else
 fi
 
 
-# Clean the screen
-# clear
+# Clear the screen
+clear
 # Print checkout message
 echo -e "\nInstallation complete! Run:\n\numount -a\nreboot\n\nEnjoy your new Arch Linux System! :)"
 
 # Exit the installation, stopping this script
-exit
+exit 0
