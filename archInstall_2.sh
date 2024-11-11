@@ -134,6 +134,7 @@ clear
 locale-gen
 
 echo -e "\nBefore editing grub:\n\n"
+head /etc/default/grub
 tail /etc/default/grub
 read -p "Press enter to continue..."
 
@@ -144,6 +145,7 @@ sed -i "s,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 ,GRUB_CMDLINE_LINUX_DEFAULT=\"
 sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
 
 echo -e "\nAfter editing grub:\n\n"
+head /etc/default/grub
 tail /etc/default/grub
 read -p "Press enter to continue..."
 
