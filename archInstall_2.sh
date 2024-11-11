@@ -203,5 +203,7 @@ archInstall_3.sh\n\n \
 to perform some post-installation tweaks.\n \
 Enjoy your new Arch Linux System! :)\n\n"
 
+# Cleanup - Delete this script
+rm -- "$0"
 # Exit the installation, stopping this script
 exit 0
