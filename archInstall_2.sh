@@ -4,14 +4,15 @@
 # ############################################# #
 # Import variables from part 1
 
+echo -e "\nImporting data...\n"
 if [ ! -f /temp_vars.sh ]; then
-    echo "Error: Data file /temp_vars.sh not found!"
+    echo "Error: Data file /temp_vars.sh not found. Could not import data."
     exit 1
 fi
 
-echo -e "\nData file found!\n\nImporting data...\n"
+echo -e "\nData file found!\n"
 source /temp_vars.sh
-read -p "Press Enter to continue..."
+read -p "Data imported. Press Enter to continue..."
 
 
 
@@ -64,7 +65,7 @@ read -p "Press Enter to continue..."
 # Update pacman before proceeding:
 pacman -Sy --noconfirm
 
-echo "Pacman optimized!"
+echo -e "\nPacman optimized!\n"
 read -p "Press Enter to continue..."
 
 
@@ -106,7 +107,7 @@ read -p "Press Enter to continue..."
 # SECTION 13 - Generating RAM Disk(s) for our Kernel(s)
 
 # Edit mkcpio config file for our encryption to work
-sed -i "s/^HOOKS=(base udev autodetect modconf kms keyboard keymap consolefont block /& encrypt lvm2/" /etc/mkinitcpio.conf
+sed -i "s/^HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block /& encrypt lvm2/" /etc/mkinitcpio.conf
 
 clean
 # confirm changes
