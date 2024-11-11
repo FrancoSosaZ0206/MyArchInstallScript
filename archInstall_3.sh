@@ -143,10 +143,10 @@ read -p "Press enter to continue..."
 # SECTION 17 - Cleanup and Debloat
 
 # Remove unnecessary gnome apps (for me)
-# PACKAGES="gnome-contacts gnome-maps gnome-music \
-#         gnome-weather gnome-tour gnome-system-monitor \
-#         yelp totem malcontent"
-# pacman -Rns $PACKAGES --noconfirm
+PACKAGES="gnome-contacts gnome-maps gnome-music \
+        gnome-weather gnome-tour gnome-system-monitor \
+        totem malcontent epiphany"
+pacman -R $PACKAGES --noconfirm
 
 # Remove temporary file used for the scripts:
 rm /temp_vars.sh
