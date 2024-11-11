@@ -183,13 +183,6 @@ PACKAGES="com.mattjakeman.ExtensionManager \
         org.gtk.Gtk3theme.Adwaita-dark"
 flatpak install flathub $PACKAGES -y
 
-# Cleanup
-rm /temp_vars.sh
-
-if [ -f /temp_vars.sh ]; then
-    echo "Warning: temp_vars.sh could not be deleted."
-fi
-
 
 
 clear
