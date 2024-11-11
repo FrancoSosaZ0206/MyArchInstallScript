@@ -36,12 +36,23 @@ read -p "Enter the keyboard layout (e.g., 'us', 'es', etc.): " KEYMAP
 # Loads selected keyboard input
 loadkeys "${KEYMAP}"
 
-# Prompt the user to input wifi information
-read -p "Enter the WiFi SSID (network name): " WIFI_SSID
-read -sp "Enter the WiFi passphrase: " WIFI_PASSWD
-echo
-# Connect to wifi (if ethernet connection is available, skip this step)
-iwctl --passphrase "${WIFI_PASSWD}" station wlan0 connect "${WIFI_SSID}"
+# Check if the device is already connected to a network (Wi-Fi/Ethernet)
+while ! nmcli -t -f DEVICE,STATE connection show --active | grep -q 'connected$'; do
+    # Prompt the user to input Wi-Fi information
+    read -p "Enter the Wi-Fi SSID (network name): " WIFI_SSID
+    read -sp "Enter the Wi-Fi passphrase: " WIFI_PASSWD
+    echo
+    # Connect to Wi-Fi
+    iwctl --passphrase "${WIFI_PASSWD}" station wlan0 connect "${WIFI_SSID}"
+
+    # If connection wasn't successful
+    if  ! nmcli -t -f DEVICE,STATE connection show --active | grep -q 'connected$'; then
+        echo "Failed to connect. Please check the SSID and password and try again."
+    else
+        echo "Successfully connected to $WIFI_SSID."
+    fi
+        
+done
 
 # Prompt the user to select their local timezone (helps with mirrors)
 read -p "Enter your timezone (e.g., 'America/New_York'): " TIMEZONE
