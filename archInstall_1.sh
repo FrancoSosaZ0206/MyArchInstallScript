@@ -138,7 +138,7 @@ parted -s "${DISK}" print
 # SECTION 3 - Partition Formatting
 
 mkfs.fat -F32 "${DISK}1"     # EFI partition
-mkfs.ext4 "${DISK}2"         # /boot partition
+mkfs.ext4 -F "${DISK}2"      # /boot partition
 mkswap "${DISK}3"            # swap partition
 
 # ${DISK}4 will be formatted later (see section X).
