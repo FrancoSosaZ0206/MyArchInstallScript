@@ -15,10 +15,10 @@ if [ -f /archInstall_2.sh ]; then
 fi
 
 # Remove unnecessary gnome apps (for me)
-PACKAGES="gnome-contacts gnome-maps gnome-music \
-        gnome-weather gnome-tour gnome-system-monitor \
-        yelp totem malcontent"
-pacman -Rns $PACKAGES --noconfirm
+# PACKAGES="gnome-contacts gnome-maps gnome-music \
+#         gnome-weather gnome-tour gnome-system-monitor \
+#         yelp totem malcontent"
+# pacman -Rns $PACKAGES --noconfirm
 
 
 
