@@ -109,7 +109,7 @@ fi
 # Edit mkcpio config file for our encryption to work
 sed -i "s/^HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block/& encrypt lvm2 /" /etc/mkinitcpio.conf
 
-clean
+clear
 # confirm changes
 # less /etc/mkinitcpio.conf
 
