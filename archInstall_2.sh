@@ -163,6 +163,10 @@ systemctl enable gdm
 # Enable wifi
 systemctl enable NetworkManager
 
+# Enable bluetooth
+modprobe btusb
+systemctl enable bluetooth
+
 clear
 # Install rest of the packages
 PACKAGES="firefox rhythmbox reaper easytag picard qjackctl \
@@ -174,18 +178,6 @@ if ! pacman -Syu ${PACKAGES} --noconfirm --needed; then
     echo "Error installing packages. Exiting..."
     exit 1
 fi
-
-clear
-# ADD THE AUR REPOSITORY (with yay)
-# Install prerequisites for building AUR packages
-sudo pacman -S git --needed --noconfirm
-
-# Clone the yay repository
-git clone https://aur.archlinux.org/yay.git /yay
-
-# Navigate to the yay directory and install yay
-cd /yay
-makepkg -si --noconfirm
 
 clear
 # Install remaining packages
