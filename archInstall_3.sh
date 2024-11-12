@@ -70,6 +70,18 @@ echo "QT_QPA_PLATFORM=wayland" | tee -a /etc/environment
 # ############################################# #
 # SECTION 16 - Special Packages Installation
 
+clear
+# Add the AUR REPOSITORY (with yay)
+# Install prerequisites for building AUR packages
+sudo pacman -S git --needed --noconfirm
+
+# Clone the yay repository
+git clone https://aur.archlinux.org/yay.git /yay
+
+# Navigate to the yay directory and install yay
+cd /yay
+makepkg -si --noconfirm
+
 # Attempt to install visual studio code
 # if it can't be installed with yay, attempt with flatpak
 if ! yay -S visual-studio-code-bin --noconfirm; then
@@ -88,6 +100,9 @@ fi
 
 # ############################################# #
 # SECTION 17 - Configuration and Tweaks
+
+# Enable autologin for the user
+sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=${USERNAME}" /etc/gdm/custom.conf
 
 # Add global aliases for yt-dlp commands
 echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' >> ~/.bashrc
