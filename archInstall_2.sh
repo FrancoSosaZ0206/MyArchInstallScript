@@ -51,12 +51,6 @@ sed -i "/^#DisableSandbox/a ILoveCandy" /etc/pacman.conf
 # Mhm.
 # Totally needed.
 
-# Uncomment these things
-sed -i "s,^#[multilib],[multilib]," /etc/pacman.conf
-sed -i "s,^#Include = /etc/pacman.d/mirrorlist,Include = /etc/pacman.d/mirrorlist," /etc/pacman.conf
-# DISCLAIMER: idk what this does, tbf with ya.
-# It's to install wine and AIMP later on.
-
 # Update pacman before proceeding:
 pacman -Sy --noconfirm
 
