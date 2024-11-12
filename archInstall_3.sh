@@ -97,31 +97,24 @@ fi
 
 clear
 # Install Wine
+PACKAGES="wine winetricks wine-mono wine-gecko"
 echo "Installing Wine..."
-sudo pacman -S wine winetricks --needed --noconfirm
+sudo pacman -S $PACKAGES --needed --noconfirm
 
 clear
 # Download AIMP installer
 echo "Downloading and installing AIMP..."
-AIMP_INSTALLER_URL="https://download.aimp.ru/AIMP/aimp_5.11.2427.exe"
+AIMP_INSTALLER_URL="https://www.aimp.ru/?do=download.file&id=3"
 curl -L -o ~/Downloads/aimp_installer.exe "$AIMP_INSTALLER_URL"
 
 # Run AIMP installer with Wine
 wine ~/Downloads/aimp_installer.exe
 
-# Create a .desktop file for AIMP (this will add it to your application menu)
-echo "[Desktop Entry]
-Name=AIMP
-Exec=wine ~/.wine/drive_c/Program\\ Files/AIMP/AIMP.exe
-Type=Application
-Icon=~/.wine/drive_c/Program\\ Files/AIMP/aimp_icon.png
-Categories=Audio;Player;" > ~/.local/share/applications/aimp.desktop
-
-# Update permissions for the .desktop file to make it executable
-chmod +x ~/.local/share/applications/aimp.desktop
-
+read -p "Press enter to continue..."
+rm ~/Downloads/aimp_installer.exe
 clear
 echo "AIMP installation complete! You can find it in your applications menu."
+read -p "Press enter to continue..."
 
 
 
