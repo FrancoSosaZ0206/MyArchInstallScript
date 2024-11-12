@@ -166,6 +166,7 @@ systemctl enable NetworkManager
 # Enable bluetooth
 modprobe btusb
 systemctl enable bluetooth
+systemctl start bluetooth
 
 clear
 # Install rest of the packages
