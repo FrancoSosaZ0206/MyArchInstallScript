@@ -137,15 +137,17 @@ parted -s "${DISK}" print
 # ############################################# #
 # SECTION 3 - Partition Formatting
 
+clear
 mkfs.fat -F32 "${DISK}1"     # EFI partition
 mkfs.ext4 -F "${DISK}2"      # /boot partition
 mkswap "${DISK}3"            # swap partition
 
-# ${DISK}4 will be formatted later (see section X).
+# sdb4 will be formatted later (see section X).
 
 # ############################################# #
 # SECTION 4 - Setting up an encrypted partition
 
+clear
 # Encrypting the partition and setting the passphrase automatically
 # --batch-mode avoids the "YES" confirmation prompt
 echo -n "${LVM_PASSWD}" | cryptsetup luksFormat --batch-mode "${DISK}4" -
@@ -154,6 +156,7 @@ echo -n "${LVM_PASSWD}" | cryptsetup open --type luks "${DISK}4" lvm -
 # ############################################# #
 # SECTION 5 - Configuring LVM
 
+clear
 # Create a physical volume
 pvcreate /dev/mapper/lvm
 
@@ -164,6 +167,7 @@ vgcreate volgroup0 /dev/mapper/lvm
 lvcreate -L 50GB volgroup0 -n lv_root   # root volume (50GB is more than enough to fill our system with programs)
 lvcreate -l 100%FREE volgroup0 -n lv_home  # home vol. (rest of the disk)
 
+# Clear the screen
 clear
 # Insert a kernel module
 modprobe dm_mod
@@ -171,6 +175,7 @@ vgscan
 # read -p "Press Enter to continue..."
 vgchange -ay
 
+clear
 # Format the encrypted partitions
 mkfs.ext4 /dev/volgroup0/lv_root
 mkfs.ext4 /dev/volgroup0/lv_home
@@ -180,6 +185,7 @@ mkfs.ext4 /dev/volgroup0/lv_home
 # ############################################# #
 # SECTION 6 - Partition Mounting
 
+clear
 # Mount root partition
 mount /dev/volgroup0/lv_root /mnt
 
@@ -197,11 +203,13 @@ swapon "${DISK}3"
 # ############################################# #
 # SECTION 7 - Installing the base system
 
+clear
 pacstrap /mnt base --noconfirm --needed
 
 # ############################################# #
 # SECTION 8 - Generate fstab file
 
+clear
 # Generate the file:
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
