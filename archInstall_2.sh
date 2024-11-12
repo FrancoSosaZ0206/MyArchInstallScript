@@ -81,7 +81,7 @@ clear
 # Set packages to ignore within GNOME
 GNOME_IGNORE="gnome-contacts,gnome-maps,gnome-music,\
 gnome-weather,gnome-tour,gnome-system-monitor,\
-totem,malcontent,cheese,epiphany"
+totem,malcontent,cheese,epiphany,snapshot"
 
 # Install GNOME package selection
 if ! pacman -S gnome --ignore ${GNOME_IGNORE} gnome-tweaks gnome-themes-extra --noconfirm --needed; then
