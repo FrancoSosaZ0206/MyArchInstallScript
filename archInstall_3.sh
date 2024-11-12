@@ -88,13 +88,6 @@ if ! yay -S visual-studio-code-bin --noconfirm; then
     flatpak install flathub com.visualstudio.code -y
 fi
 
-# Attempt to install davinci resolve
-if ! yay -S davinci-resolve --noconfirm; then
-    clear
-    echo "WARNING: could not install DaVinci Resolve."
-    read -p "Press enter to continue..."
-fi
-
 
 
 # ############################################# #
