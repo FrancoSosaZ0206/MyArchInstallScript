@@ -95,27 +95,6 @@ if ! yay -S davinci-resolve --noconfirm; then
     read -p "Press enter to continue..."
 fi
 
-clear
-# Install Wine
-PACKAGES="wine winetricks wine-mono wine-gecko"
-echo "Installing Wine..."
-sudo pacman -S $PACKAGES --needed --noconfirm
-
-clear
-# Download AIMP installer
-echo "Downloading and installing AIMP..."
-AIMP_INSTALLER_URL="https://www.aimp.ru/?do=download.file&id=3"
-curl -L -o ~/Downloads/aimp_installer.exe "$AIMP_INSTALLER_URL"
-
-# Run AIMP installer with Wine
-wine ~/Downloads/aimp_installer.exe
-
-read -p "Press enter to continue..."
-rm ~/Downloads/aimp_installer.exe
-clear
-echo "AIMP installation complete! You can find it in your applications menu."
-read -p "Press enter to continue..."
-
 
 
 # ############################################# #
