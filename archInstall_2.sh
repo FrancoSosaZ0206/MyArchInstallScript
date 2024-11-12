@@ -63,13 +63,13 @@ clear
 # Store packages in groups in a variable
 # for easier readability
 PACKAGES="base-devel \
-          grub efibootmgr \
-          linux linux-firmware linux-headers linux-lts linux-lts-headers \
-          lvm2 \
-          nvidia nvidia-utils nvidia-lts \
-          networkmanager bluez blueman bluez-utils \
-          dosfstools mtools os-prober sudo \
-          gparted htop man neofetch"
+grub efibootmgr \
+linux linux-firmware linux-headers linux-lts linux-lts-headers \
+lvm2 \
+nvidia nvidia-utils nvidia-lts \
+networkmanager bluez blueman bluez-utils \
+dosfstools mtools os-prober sudo \
+gparted htop man neofetch"
 
 # Perform the installation (enjoy!)
 if ! pacman -S ${PACKAGES} --noconfirm --needed; then
@@ -171,9 +171,9 @@ systemctl start bluetooth
 clear
 # Install rest of the packages
 PACKAGES="firefox rhythmbox reaper easytag picard qjackctl \
-         gimp krita obs-studio \
-         nano vim libreoffice-fresh \
-         yt-dlp"
+gimp krita obs-studio \
+nano vim libreoffice-fresh \
+yt-dlp"
 if ! pacman -Syu ${PACKAGES} --noconfirm --needed; then
     clear
     echo "Error installing packages. Exiting..."
@@ -183,8 +183,8 @@ fi
 clear
 # Install remaining packages
 PACKAGES="com.mattjakeman.ExtensionManager \
-        com.discordapp.Discord \
-        org.gtk.Gtk3theme.Adwaita-dark"
+com.discordapp.Discord \
+org.gtk.Gtk3theme.Adwaita-dark"
 flatpak install flathub $PACKAGES -y
 
 
