@@ -109,7 +109,7 @@ echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed
 # Remove unnecessary gnome apps (for me)
 PACKAGES="gnome-contacts gnome-maps gnome-music \
         gnome-weather gnome-tour gnome-system-monitor \
-        totem malcontent epiphany"
+        totem malcontent epiphany snapshot"
 pacman -R $PACKAGES --noconfirm
 
 # Remove temporary file used for the scripts:
