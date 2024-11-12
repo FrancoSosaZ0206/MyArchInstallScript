@@ -4,6 +4,7 @@
 # ############################################# #
 # Import variables from part 1
 
+clear
 echo -e "\nImporting data...\n"
 if [ ! -f /temp_vars.sh ]; then
     echo "Error: Data file /temp_vars.sh not found. Could not import data."
@@ -17,6 +18,7 @@ source /temp_vars.sh
 # ############################################# #
 # SECTION 10 - Setting up users
 
+clear
 # Set installation's root password
 echo "root:${INSTALLATION_ROOT_PASSWD}" | chpasswd
 
@@ -36,6 +38,7 @@ echo "${USERNAME}:${USER_PASSWD}" | chpasswd
 # This will save a TON of time when downloading
 # all the packages.
 
+clear
 # Enable colored output
 sed -i "s/^#Color/Color/" /etc/pacman.conf
 
@@ -56,6 +59,7 @@ pacman -Sy --noconfirm
 # ############################################# #
 # SECTION 12 - Install All The Packages
 
+clear
 # Store packages in groups in a variable
 # for easier readability
 PACKAGES="base-devel \
@@ -73,15 +77,14 @@ if ! pacman -S ${PACKAGES} --noconfirm --needed; then
   exit 1
 fi
 
+clear
 # Set packages to ignore within GNOME
 GNOME_IGNORE="gnome-contacts,gnome-maps,gnome-music,\
 gnome-weather,gnome-tour,gnome-system-monitor,\
 totem,malcontent,cheese,epiphany"
-# GNOME package group with exclusions and additional packages
-PACKAGES="gnome --ignore ${GNOME_IGNORE} gnome-tweaks gnome-themes-extra"
 
 # Install GNOME package selection
-if ! pacman -S ${PACKAGES} --noconfirm --needed; then
+if ! pacman -S gnome --ignore ${GNOME_IGNORE} gnome-tweaks gnome-themes-extra --noconfirm --needed; then
   echo "Error installing GNOME. Exiting..."
   exit 1
 fi
@@ -91,10 +94,9 @@ fi
 # ############################################# #
 # SECTION 13 - Generating RAM Disk(s) for our Kernel(s)
 
+clear
 # Edit mkcpio config file for our encryption to work
 sed -i "s/^HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block/& encrypt lvm2/" /etc/mkinitcpio.conf
-
-clear
 
 # Generate initramfs for each of the previously installed kernels:
 mkinitcpio -p linux
@@ -105,15 +107,15 @@ mkinitcpio -p linux-lts
 # ############################################# #
 # SECTION 14 - Post-Installation (misc.) Setup
 
+clear
 # Set locales
 sed -i "s/^#en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
 sed -i "s/^#es_AR.UTF-8/es_AR.UTF-8/" /etc/locale.gen
 
-clear
-
 # Generate locales
 locale-gen
 
+clear
 # Add our encrypted volume to the GRUB config file
 sed -i "s,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 ,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${DISK}4:volgroup0 ," /etc/default/grub
 
@@ -125,6 +127,7 @@ EXPECTED="GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${DISK}4:volgroup0
 
 # Verify that the line matches exactly as expected
 if ! grep -q "^${EXPECTED}$" /etc/default/grub; then
+    clear
     echo "Error: GRUB_CMDLINE_LINUX_DEFAULT line was not updated correctly."
     exit 1
 fi
@@ -132,15 +135,18 @@ fi
 # Mount EFI partition (the 1st we created)
 mount --mkdir "${DISK}1" /boot/EFI
 
+clear
 # Install GRUB
 grub-install --target=x86_64-efi --bootloader-id=grub_uefi --recheck
 
 # Copy grub locale file into our directory
 cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 
+clear
 # Make grub config
 grub-mkconfig -o /boot/grub/grub.cfg
 
+clear
 # Grant the newly created user sudo privileges
 echo '%wheel ALL=(ALL) ALL' | EDITOR='tee -a' visudo
 
@@ -150,22 +156,26 @@ if grep '# %wheel ALL=(ALL) ALL' /etc/sudoers; then
   read -p "Press enter to continue..."
 fi
 
+clear
 # Enable GNOME greeter
 systemctl enable gdm
 
 # Enable wifi
 systemctl enable NetworkManager
 
+clear
 # Install rest of the packages
 PACKAGES="firefox rhythmbox reaper easytag picard qjackctl \
          gimp krita obs-studio \
          nano vim libreoffice-fresh \
          yt-dlp"
 if ! pacman -Syu ${PACKAGES} --noconfirm --needed; then
-  echo "Error installing packages. Exiting..."
-  exit 1
+    clear
+    echo "Error installing packages. Exiting..."
+    exit 1
 fi
 
+clear
 # ADD THE AUR REPOSITORY (with yay)
 # Install prerequisites for building AUR packages
 sudo pacman -S git --needed --noconfirm
@@ -177,6 +187,7 @@ git clone https://aur.archlinux.org/yay.git /yay
 cd /yay
 makepkg -si --noconfirm
 
+clear
 # Install remaining packages
 PACKAGES="com.mattjakeman.ExtensionManager \
         com.discordapp.Discord \
@@ -198,7 +209,7 @@ clear
 echo -e "\nInstallation complete! Run:\n\n \
 umount -a\n \
 reboot\n\n \
-After booting into the new system, run\n\n \
+After booting into the new system, Run:\n\n \
 archInstall_3.sh\n\n \
 to perform some post-installation tweaks.\n \
 Enjoy your new Arch Linux System! :)\n\n"
