@@ -272,19 +272,15 @@ genfstab -U -p /mnt >> /mnt/etc/fstab
 } >> /mnt/temp_vars.sh
 
 cat /mnt/temp_vars.sh
-read -p "Exported common variables to a temporary file..."
-
-clear
-echo "Downloading next part of setup script..."
+echo "Exported common variables to a temporary file..."
 
 # fetch the 2nd part of the script into the installation
+echo "Downloading next part of setup script..."
 curl -o /mnt/archInstall_2.sh https://raw.githubusercontent.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_2.sh
 chmod +x /mnt/archInstall_2.sh
 
-clear
-echo "Entering chroot environment..."
-
 # chroot into the installation and run part 2
+echo "Entering chroot environment..."
 arch-chroot /mnt /archInstall_2.sh
 
 # Continues in part 2!
