@@ -110,37 +110,6 @@ sudo echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --
 alias
 read -p "yt-dlp aliases set..."
 
-# Perform automounting if the user chose to do so
-if [ -n "$AUTOMOUNT_DISK" ]; then
-    read -p "Automounting $AUTOMOUNT_DISK..."
-
-    MOUNT_POINT="/run/media/$USERNAME/"
-    # Set the mount point based on the disk label
-    if [ -n "$AUTOMOUNT_LABEL" ]; then
-        MOUNT_POINT+="$(echo $AUTOMOUNT_LABEL | tr ' ' '_')"
-    else # fallback to default
-        MOUNT_POINT+="$AUTOMOUNT_DISK"
-    fi
-    read -p "Setting mount point to '$MOUNT_POINT'"
-
-    # Get the user's UID and GID
-    USER_UID=$(id -u "$USERNAME")
-    USER_GID=$(id -g "$USERNAME")
-
-    # Construct fstab entry
-    AUTOMOUNT_FSTAB_ENTRY="UUID=$AUTOMOUNT_UUID  $MOUNT_POINT  $AUTOMOUNT_FSTYPE  defaults,noatime,uid=$USER_UID,gid=$USER_GID  0  2"
-
-    # Add the fstab entry
-    if ! sudo echo "$AUTOMOUNT_FSTAB_ENTRY" | sudo tee -a /etc/fstab; then
-      echo "Error: Failed to add FSTAB entry." >&2
-      exit 1
-    else
-        # Create the mount point directory
-        sudo mkdir -p "$MOUNT_POINT"
-        read -p "FSTAB entry added successfully."
-    fi
-fi
-
 
 
 # ############################################# #
@@ -185,14 +154,33 @@ GNOME Settings:
     > Language: if set to 'unspecified', set to 'English (US)'
     > Formats: set to 'Argentina'
     > Users: set user photo to one you like :) 
-- Keyboard: set input method language to 'Spanish (Latin American)'
+- Keyboard >
+    > Input Sources: set input method language to 'Spanish (Latin American)'
     and put it to the top. Select it from the top bar, too.
+    > Keyboard Shortcuts > View and Customize Shortcuts >
+        > System:
+            - Lock screen: rebind to 'Pause' ('Pausa' button on keyboard)
+            - Log out: rebind to 'Super+L'
+        > Custom Shortcuts - Add (name | command | shortcut):
+            - Power Off | gnome-session-quit --power-off | Super+P
+            - Reboot | gnome-session-quit --reboot | Super+R
+            - Suspend | systemctl suspend | Super+S
+            - Open Music Player | audacious | Super+M
 - Displays > Night Light > 
     > Times: from 18:00 to 10:00 
     > Color Temperature: set the slider to 1/4 
-- Apps > Default Apps: make sure Rhythmbox is set for Music,
-    and set Photos to Image Viewer.
+- Apps > Default Apps: make sure
+    - either Audacious or Rhythmbox are set for Music, and
+    - set Photos to Image Viewer.
 - Appearance: tune to your liking :) 
+
+Disks - Automounting disks:
+    - Go to the disk > partition you wanna automount,
+    - Go to the gears icon > Edit Mount Options...
+    - Toggle 'User Session Defaults' off.
+    - Make sure 'Mount at system startup' is ticked.
+    - (Optional) set 'Identify as' to 'LABEL=YOUR_DISK_LABEL'
+    - Click on 'Ok', it'll prompt for your password; put it and you're done here.
 
 GNOME tweaks:
 - Windows > Titlebar Buttons: toggle Maximize and Minimize on.
@@ -202,7 +190,7 @@ Audacious:
 - Settings > 
     > Appearance > 
         > Theme: set to 'Dark'
-        > Icon theme: set to 'Flat (Dark)'
+        > Icon theme: set to 'Flat (Dark)' or leave at default
     > Audio > ReplayGain: check 'Enable', set mode to 'Based on shuffle'
       and set 'Amplify all files' to '-8.0' dB.
     > Plugins: if not already, enable
@@ -215,14 +203,14 @@ Audacious:
 Others:
 - Turn wi-fi on (and set password)
 - Test bluetooth
-- Open Firefox and log into all necessary accounts (use phone and WhatsApp for this)
+- Open Firefox and log into Mozilla, Google and GitHub (use phone and WhatsApp Web for this)
 - Apps menu: group apps in folders
 EOF
 
 # Notify the user
 clear
 head $TODO_PATH
-echo "..."
+echo '...'
 echo "Post-installation to-do list has been saved to $TODO_PATH."
 
 # Cleanup - Delete this script
