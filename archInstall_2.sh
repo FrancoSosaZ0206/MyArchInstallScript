@@ -213,7 +213,9 @@ fi
 
 clear
 # Install rest of the packages
-PACKAGES="firefox rhythmbox reaper easytag picard qjackctl \
+PACKAGES="firefox \
+rhythmbox audacious \
+reaper easytag picard qjackctl \
 gimp krita obs-studio \
 nano vim libreoffice-fresh \
 yt-dlp"
