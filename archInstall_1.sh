@@ -23,12 +23,6 @@ WIFI_PASSWD=""
 KEYMAP=""
 TIMEZONE=""
 
-AUTOMOUNT_DISK=""
-AUTOMOUNT_PATH=""
-AUTOMOUNT_UUID=""
-AUTOMOUNT_FSTYPE=""
-AUTOMOUNT_LABEL=""
-
 
 
 # ############################################# #
@@ -83,44 +77,6 @@ echo "root:${INSTALLER_ROOT_PASSWD}" | chpasswd
 # read -p "Enter the installation's username: " USERNAME
 # read -sp "Enter the password for $USERNAME: " USER_PASSWD
 # echo
-
-# Prompt for disk selection (automounting)
-clear
-lsblk
-read -p "Enter disk to automount (e.g., 'sda1'), or press Enter to skip: " AUTOMOUNT_DISK
-
-# Check if the user entered a disk
-if [ -n "$AUTOMOUNT_DISK" ]; then
-    # Define the full disk path
-    AUTOMOUNT_PATH="/dev/$AUTOMOUNT_DISK"
-
-    # Check if the disk exists
-    if [ ! -b "$AUTOMOUNT_PATH" ]; then
-        echo "Disk $AUTOMOUNT_PATH does not exist. Exiting..."
-        exit 1
-    fi
-
-    # Get UUID and filesystem type of the disk
-    AUTOMOUNT_UUID=$(blkid -s UUID -o value "$AUTOMOUNT_PATH")
-    AUTOMOUNT_FSTYPE=$(blkid -s TYPE -o value "$AUTOMOUNT_PATH")
-    AUTOMOUNT_LABEL=$(blkid -s LABEL -o value "$AUTOMOUNT_PATH")
-
-    # Check if we successfully retrieved UUID and filesystem type
-    if [ -z "$AUTOMOUNT_UUID" ] || [ -z "$AUTOMOUNT_FSTYPE" ]; then
-        echo "Unable to retrieve UUID or filesystem type. Exiting..."
-        exit 1
-    fi
-
-    # Output collected information
-    echo "Collected information:"
-    echo "Disk: $AUTOMOUNT_PATH"
-    echo "UUID: $AUTOMOUNT_UUID"
-    echo "Filesystem type: $AUTOMOUNT_FSTYPE"
-    echo "Label: $AUTOMOUNT_LABEL"
-
-    # Entry will be added to the fstab file in section 8
-    read -p "${AUTOMOUNT_DISK} ready to automount."
-fi
 
 
 
@@ -262,13 +218,6 @@ genfstab -U -p /mnt >> /mnt/etc/fstab
     echo "USERNAME=${USERNAME}"
     echo "USER_PASSWD=${USER_PASSWD}"
     echo "SYS_DISK=${SYS_DISK}"
-    echo "AUTOMOUNT_DISK=${AUTOMOUNT_DISK}"
-    if [ -n "${AUTOMOUNT_DISK}" ]; then
-        echo "AUTOMOUNT_PATH=${AUTOMOUNT_PATH}"
-        echo "AUTOMOUNT_UUID=${AUTOMOUNT_UUID}"
-        echo "AUTOMOUNT_FSTYPE=${AUTOMOUNT_FSTYPE}"
-        echo "AUTOMOUNT_LABEL=${AUTOMOUNT_LABEL}"
-    fi
 } >> /mnt/temp_vars.sh
 
 cat /mnt/temp_vars.sh
