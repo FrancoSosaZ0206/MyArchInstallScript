@@ -129,13 +129,13 @@ locale-gen
 
 clear
 # Add our encrypted volume to the GRUB config file
-sed -i "s,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 ,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${DISK}4:volgroup0 ," /etc/default/grub
+sed -i "s,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 ,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${SYS_DISK}4:volgroup0 ," /etc/default/grub
 
 # Enabling os-prober to detect multi-os systems in GRUB:
 sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
 
 # Define the expected line for verification
-EXPECTED="GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${DISK}4:volgroup0 quiet\""
+EXPECTED="GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${SYS_DISK}4:volgroup0 quiet\""
 
 # Verify that the line matches exactly as expected
 if ! grep -q "^${EXPECTED}$" /etc/default/grub; then
@@ -145,7 +145,7 @@ if ! grep -q "^${EXPECTED}$" /etc/default/grub; then
 fi
 
 # Mount EFI partition (the 1st we created)
-mount --mkdir "${DISK}1" /boot/EFI
+mount --mkdir "${SYS_DISK}1" /boot/EFI
 
 clear
 # Install GRUB
@@ -180,6 +180,37 @@ modprobe btusb
 systemctl enable bluetooth
 systemctl start bluetooth
 
+# Perform automounting if the user chose to do so
+if [ -n "$AUTOMOUNT_DISK" ]; then
+    read -p "Automounting $AUTOMOUNT_DISK..."
+
+    MOUNT_POINT="/run/media/$USERNAME/"
+    # Set the mount point based on the disk label
+    if [ -n "$AUTOMOUNT_LABEL" ]; then
+        MOUNT_POINT+="$(echo $AUTOMOUNT_LABEL | tr ' ' '_')"
+    else # fallback to default
+        MOUNT_POINT+="$AUTOMOUNT_DISK"
+    fi
+    read -p "Setting mount point to '$MOUNT_POINT'"
+
+    # Get the user's UID and GID
+    USER_UID=$(id -u "$USERNAME")
+    USER_GID=$(id -g "$USERNAME")
+
+    # Construct fstab entry
+    AUTOMOUNT_FSTAB_ENTRY="UUID=$AUTOMOUNT_UUID  $MOUNT_POINT  $AUTOMOUNT_FSTYPE  defaults,noatime,uid=$USER_UID,gid=$USER_GID  0  2"
+
+    # Add the fstab entry
+    if ! echo "$AUTOMOUNT_FSTAB_ENTRY" | tee -a /mnt/etc/fstab; then
+      echo "Error: Failed to add FSTAB entry." >&2
+      exit 1
+    else
+        # Create the mount point directory
+        mkdir -p "$MOUNT_POINT"
+        read -p "FSTAB entry added successfully."
+    fi
+fi
+
 clear
 # Install rest of the packages
 PACKAGES="firefox rhythmbox reaper easytag picard qjackctl \
@@ -212,7 +243,7 @@ chmod +x /mnt/archInstall_3.sh
 clear
 # Print checkout message
 echo -e "\nInstallation complete! Run:\n\n \
-umount -a\n \
+umount -R /mnt\n \
 reboot\n\n \
 After booting into the new system, Run:\n\n \
 archInstall_3.sh\n\n \
