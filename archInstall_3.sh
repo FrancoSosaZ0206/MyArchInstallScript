@@ -48,6 +48,13 @@ sudo mkdir -p /home/$USERNAME/.config/hypr
 
 # Basic Hyprland configuration file with Spanish (Latin America) layout
 sudo cat <<EOL > /home/$USERNAME/.config/hypr/hyprland.conf
+env = LIBVA_DRIVER_NAME,nvidia
+env = __GLX_VENDOR_LIBRARY_NAME,nvidia
+
+cursor {
+    no_hardware_cursors = true
+}
+
 monitor=,preferred,auto,1
 input {
     kb_layout = "latam"
@@ -71,9 +78,9 @@ DesktopNames=Hyprland
 EOL
 
 # Set Wayland-related environment variables
-sudo echo "XDG_SESSION_TYPE=wayland" | sudo tee -a /etc/environment
-sudo echo "MOZ_ENABLE_WAYLAND=1" | sudo tee -a /etc/environment
-sudo echo "QT_QPA_PLATFORM=wayland" | sudo tee -a /etc/environment
+echo "XDG_SESSION_TYPE=wayland" | sudo tee -a /etc/environment
+echo "MOZ_ENABLE_WAYLAND=1" | sudo tee -a /etc/environment
+echo "QT_QPA_PLATFORM=wayland" | sudo tee -a /etc/environment
 
 
 
