@@ -29,7 +29,7 @@ xdg-desktop-portal xdg-desktop-portal-hyprland \
 kitty wofi"
 
 # Install Hyprland and dependencies
-if ! pacman -S ${HYPRLAND_PACKAGES} --noconfirm --needed; then
+if ! sudo pacman -S ${HYPRLAND_PACKAGES} --noconfirm --needed; then
   echo "WARNING: could not install Hyprland and its dependencies."
 fi
 
