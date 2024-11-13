@@ -185,8 +185,8 @@ clear
 echo "Downloading the third part of the setup script..."
 
 # fetch the 3rd part of the script into the installation
-curl -o /mnt/archInstall_3.sh https://raw.githubusercontent.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_3.sh
-chmod +x /mnt/archInstall_3.sh
+curl -o /archInstall_3.sh https://raw.githubusercontent.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_3.sh
+chmod +x /archInstall_3.sh
 
 
 clear
