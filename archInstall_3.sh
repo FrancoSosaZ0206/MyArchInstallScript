@@ -128,7 +128,7 @@ if [ -n "$AUTOMOUNT_DISK" ]; then
     AUTOMOUNT_FSTAB_ENTRY="UUID=$AUTOMOUNT_UUID  $MOUNT_POINT  $AUTOMOUNT_FSTYPE  defaults,noatime,uid=$USER_UID,gid=$USER_GID  0  2"
 
     # Add the fstab entry
-    if ! sudo echo "$AUTOMOUNT_FSTAB_ENTRY" | tee -a /mnt/etc/fstab; then
+    if ! sudo echo "$AUTOMOUNT_FSTAB_ENTRY" | sudo tee -a /etc/fstab; then
       echo "Error: Failed to add FSTAB entry." >&2
       exit 1
     else
