@@ -77,7 +77,7 @@ if ! pacman -S ${PACKAGES} --noconfirm --needed; then
   echo "Error installing packages. Exiting..."
   exit 1
 fi
-read -p "Needed system packages installed. Press enter to continue..."
+echo "Needed system packages installed."
 
 
 
