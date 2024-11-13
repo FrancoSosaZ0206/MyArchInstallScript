@@ -107,7 +107,7 @@ locale-gen
 
 clear
 # Add our encrypted volume to the GRUB config file
-sed -i "s,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 ,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${SYS_DISK}4:volgroup0 ," /etc/default/grub
+sed -i "s,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3,& cryptdevice=${SYS_DISK}4:volgroup0," /etc/default/grub
 
 # Enabling os-prober to detect multi-os systems in GRUB:
 sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
