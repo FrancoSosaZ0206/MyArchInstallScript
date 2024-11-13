@@ -72,7 +72,7 @@ dosfstools mtools os-prober sudo \
 gparted htop man neofetch"
 
 # Perform the installation (enjoy!)
-if ! pacman -S ${PACKAGES} --needed; then
+if ! pacman -S ${PACKAGES} --noconfirm --needed; then
   echo "Error installing packages. Exiting..."
   exit 1
 fi
@@ -95,7 +95,7 @@ clear
 echo -e "\nInstalling GNOME extra packages...\n"
 # Install gnome extra packages
 PACKAGES="gnome-tweaks gnome-themes-extra"
-if ! pacman -S ${GNOME_IGNORE} --needed; then
+if ! pacman -S ${GNOME_IGNORE} --noconfirm --needed; then
   echo "Error installing GNOME extra packages. Exiting..."
   exit 1
 fi
