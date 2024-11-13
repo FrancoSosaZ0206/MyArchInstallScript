@@ -69,37 +69,15 @@ lvm2 \
 nvidia nvidia-utils nvidia-lts \
 networkmanager bluez blueman bluez-utils \
 dosfstools mtools os-prober sudo \
-gparted htop man neofetch"
+gparted htop man neofetch \
+gnome gnome-tweaks gnome-themes-extra"
 
 # Perform the installation (enjoy!)
 if ! pacman -S ${PACKAGES} --noconfirm --needed; then
   echo "Error installing packages. Exiting..."
   exit 1
 fi
-
-clear
-echo -e "\nInstalling GNOME...\n"
-# Set packages to ignore within GNOME
-GNOME_IGNORE="gnome-contacts,gnome-maps,gnome-music,\
-gnome-weather,gnome-tour,gnome-system-monitor,\
-totem,malcontent,cheese,epiphany,snapshot"
-
-# Install GNOME package selection
-if ! pacman -S gnome --ignore ${GNOME_IGNORE} --needed; then
-  echo "Error installing GNOME. Exiting..."
-  exit 1
-fi
-read -p "Press enter to continue..."
-
-clear
-echo -e "\nInstalling GNOME extra packages...\n"
-# Install gnome extra packages
-PACKAGES="gnome-tweaks gnome-themes-extra"
-if ! pacman -S ${GNOME_IGNORE} --noconfirm --needed; then
-  echo "Error installing GNOME extra packages. Exiting..."
-  exit 1
-fi
-read -p "Press enter to continue..."
+read -p "Needed system packages installed. Press enter to continue..."
 
 
 
