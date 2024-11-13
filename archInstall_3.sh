@@ -26,7 +26,7 @@ mako dunst \
 swaybg swaylock swayidle \
 waybar \
 xdg-desktop-portal xdg-desktop-portal-hyprland \
-kitty wofi"
+kitty wofi dkms"
 
 # Install Hyprland and dependencies
 if ! sudo pacman -S ${HYPRLAND_PACKAGES} --noconfirm --needed; then
