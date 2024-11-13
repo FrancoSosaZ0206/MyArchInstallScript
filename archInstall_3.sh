@@ -120,6 +120,33 @@ sudo echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --
 alias
 read -p "yt-dlp aliases set..."
 
+# Create audacious config file
+sudo touch "/home/$USERNAME/.config/audacious/config.txt"
+# Write my custom settings to it
+sudo cat << EOF > "/home/$USERNAME/.config/audacious/config.txt"
+[audacious]
+replay_gain_mode=2
+replay_gain_preamp=-8
+shuffle=TRUE
+
+[audgui]
+filesel_path=/run/media/fran/1TB/Franco/3. Música
+
+[audqt]
+theme=dark
+
+[compressor]
+center=0.6
+range=0.7
+
+[crossfade]
+length=1
+
+[qtui]
+player_height=1011
+player_width=1920
+EOF
+
 
 
 # ############################################# #
@@ -197,18 +224,10 @@ GNOME tweaks:
 - Appearance > Styles: if not already, set 'Legacy Applications' to 'Adwaita-dark'
 
 Audacious:
-- Settings > 
-    > Appearance > 
-        > Theme: set to 'Dark'
-        > Icon theme: set to 'Flat (Dark)' or leave at default
-    > Audio > ReplayGain: check 'Enable', set mode to 'Based on shuffle'
-      and set 'Amplify all files' to '-8.0' dB.
-    > Plugins: if not already, enable
-        - General > Lyrics
-        - General > Search Tool
-        - Effect > Crossfade (set 'On automatic song change > Overlap' to 1 second)
-        - Effect > Dynamic Range Compressor (set 'Center volume' to '0.6' and 'Dynamic Range' to '0.7')
-        - Effect > Silence Removal
+- Settings > Plugins: if not already, enable
+    - General > Lyrics
+    - General > Search Tool
+    - Effect > Silence Removal
 
 Others:
 - Turn wi-fi on (and set password)
