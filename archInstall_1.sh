@@ -23,6 +23,12 @@ WIFI_PASSWD=""
 KEYMAP=""
 TIMEZONE=""
 
+AUTOMOUNT_DISK=""
+AUTOMOUNT_PATH=""
+AUTOMOUNT_UUID=""
+AUTOMOUNT_FSTYPE=""
+AUTOMOUNT_LABEL=""
+
 
 
 # ############################################# #
@@ -32,16 +38,17 @@ TIMEZONE=""
 setfont ter-132b
 
 # Prompt user to select a keyboard imput
-read -p "Enter the keyboard layout (e.g., 'us', 'es', etc.): " KEYMAP
+# read -p "Enter the keyboard layout (e.g., 'us', 'es', etc.): " KEYMAP
 # Loads selected keyboard input
 loadkeys "${KEYMAP}"
 
 # Check if the device is already connected to a network (Wi-Fi/Ethernet)
 while ! ip addr show | grep -q "state UP"; do
     # Prompt the user to input Wi-Fi information
-    read -p "Enter the Wi-Fi SSID (network name): " WIFI_SSID
-    read -sp "Enter the Wi-Fi passphrase: " WIFI_PASSWD
-    echo
+    # read -p "Enter the Wi-Fi SSID (network name): " WIFI_SSID
+    # read -sp "Enter the Wi-Fi passphrase: " WIFI_PASSWD
+    # echo
+    
     # Connect to Wi-Fi
     iwctl --passphrase "${WIFI_PASSWD}" station wlan0 connect "${WIFI_SSID}"
 
@@ -54,29 +61,66 @@ while ! ip addr show | grep -q "state UP"; do
 done
 
 # Prompt the user to select their local timezone (helps with mirrors)
-read -p "Enter your timezone (e.g., 'America/New_York'): " TIMEZONE
+# read -p "Enter your timezone (e.g., 'America/New_York'): " TIMEZONE
 # Set local timezone
 timedatectl set-timezone "${TIMEZONE}"
 
 # Prompt user to set a root password for the installation media
-read -sp "Enter installation media's root password: " INSTALLER_ROOT_PASSWD
-echo
+# read -sp "Enter installation media's root password: " INSTALLER_ROOT_PASSWD
+# echo
 # Set this installer's root password
 echo "root:${INSTALLER_ROOT_PASSWD}" | chpasswd
 
 # Disk encryption passphrase
-read -sp "Enter the encryption passphrase for the disk: " LVM_PASSWD
-echo
+# read -sp "Enter the encryption passphrase for the disk: " LVM_PASSWD
+# echo
 
 # Installation's root password
-read -sp "Enter the root password for the new installation: " INSTALLATION_ROOT_PASSWD
-echo
+# read -sp "Enter the root password for the new installation: " INSTALLATION_ROOT_PASSWD
+# echo
 
 # Username and password for the new user
-read -p "Enter the installation's username: " USERNAME
-read -sp "Enter the password for $USERNAME: " USER_PASSWD
-echo
+# read -p "Enter the installation's username: " USERNAME
+# read -sp "Enter the password for $USERNAME: " USER_PASSWD
+# echo
 
+# Prompt for disk selection (automounting)
+clear
+lsblk
+read -p "Enter disk to automount (e.g., 'sda1'), or press Enter to skip: " AUTOMOUNT_DISK
+
+# Check if the user entered a disk
+if [ -n "$AUTOMOUNT_DISK" ]; then
+    # Define the full disk path
+    AUTOMOUNT_PATH="/dev/$AUTOMOUNT_DISK"
+
+    # Check if the disk exists
+    if [ ! -b "$AUTOMOUNT_PATH" ]; then
+        echo "Disk $AUTOMOUNT_PATH does not exist. Exiting..."
+        exit 1
+    fi
+
+    # Get UUID and filesystem type of the disk
+    AUTOMOUNT_UUID=$(blkid -s UUID -o value "$AUTOMOUNT_PATH")
+    AUTOMOUNT_FSTYPE=$(blkid -s TYPE -o value "$AUTOMOUNT_PATH")
+    AUTOMOUNT_LABEL=$(blkid -s LABEL -o value "$AUTOMOUNT_PATH")
+
+    # Check if we successfully retrieved UUID and filesystem type
+    if [ -z "$AUTOMOUNT_UUID" ] || [ -z "$AUTOMOUNT_FSTYPE" ]; then
+        echo "Unable to retrieve UUID or filesystem type. Exiting..."
+        exit 1
+    fi
+
+    # Output collected information
+    echo "Collected information:"
+    echo "Disk: $AUTOMOUNT_PATH"
+    echo "UUID: $AUTOMOUNT_UUID"
+    echo "Filesystem type: $AUTOMOUNT_FSTYPE"
+    echo "Label: $AUTOMOUNT_LABEL"
+
+    # Entry will be added to the fstab file in section 8
+    read -p "${AUTOMOUNT_DISK} ready to automount."
+fi
 
 
 
@@ -107,40 +151,40 @@ clear
 # Print disk layout
 lsblk
 # Prompt user to select a disk
-read -p "Enter the disk (e.g., 'sdb' for /dev/sdb): " DISK
-DISK="/dev/$DISK"  # Prepend with /dev
+read -p "Enter the disk (e.g., 'sdb' for /dev/sdb) where the system will be: " SYS_DISK
+SYS_DISK="/dev/$SYS_DISK"  # Prepend with /dev
 
 # Create a new partition table
-parted -s "${DISK}" mklabel gpt
+parted -s "${SYS_DISK}" mklabel gpt
 
 # Partitions:
 
 # 1° - EFI, 1GB
-parted -s "${DISK}" mkpart ESP fat32 1MiB 1GiB
+parted -s "${SYS_DISK}" mkpart ESP fat32 1MiB 1GiB
 # Set 1st partition as bootable
-parted -s "${DISK}" set 1 boot on
+parted -s "${SYS_DISK}" set 1 boot on
 
 # 2° - /boot, 1GB
-parted -s "${DISK}" mkpart primary ext4 1GiB 2GiB
+parted -s "${SYS_DISK}" mkpart primary ext4 1GiB 2GiB
 # 3° - swap, 4GB
-parted -s "${DISK}" mkpart primary linux-swap 2GiB 6Gib
+parted -s "${SYS_DISK}" mkpart primary linux-swap 2GiB 6Gib
 
 # 4° - LVM, rest of the disk
-parted -s "${DISK}" mkpart primary ext4 6GiB 100%
+parted -s "${SYS_DISK}" mkpart primary ext4 6GiB 100%
 # Set 4th partition as lvm
-parted -s "${DISK}" set 4 lvm on
+parted -s "${SYS_DISK}" set 4 lvm on
 
 # Print partition table for verification
-parted -s "${DISK}" print
+parted -s "${SYS_DISK}" print
 
 
 # ############################################# #
 # SECTION 3 - Partition Formatting
 
 clear
-mkfs.fat -F32 "${DISK}1"     # EFI partition
-mkfs.ext4 -F "${DISK}2"      # /boot partition
-mkswap "${DISK}3"            # swap partition
+mkfs.fat -F32 "${SYS_DISK}1"     # EFI partition
+mkfs.ext4 -F "${SYS_DISK}2"      # /boot partition
+mkswap "${SYS_DISK}3"            # swap partition
 
 # sdb4 will be formatted later (see section X).
 
@@ -150,8 +194,8 @@ mkswap "${DISK}3"            # swap partition
 clear
 # Encrypting the partition and setting the passphrase automatically
 # --batch-mode avoids the "YES" confirmation prompt
-echo -n "${LVM_PASSWD}" | cryptsetup luksFormat --batch-mode "${DISK}4" -
-echo -n "${LVM_PASSWD}" | cryptsetup open --type luks "${DISK}4" lvm -
+echo -n "${LVM_PASSWD}" | cryptsetup luksFormat --batch-mode "${SYS_DISK}4" -
+echo -n "${LVM_PASSWD}" | cryptsetup open --type luks "${SYS_DISK}4" lvm -
 
 # ############################################# #
 # SECTION 5 - Configuring LVM
@@ -190,13 +234,13 @@ clear
 mount /dev/volgroup0/lv_root /mnt
 
 # Mount boot (2nd) partition
-mount --mkdir "${DISK}2" /mnt/boot
+mount --mkdir "${SYS_DISK}2" /mnt/boot
 
 # Mount home partition
 mount --mkdir /dev/volgroup0/lv_home /mnt/home
 
 # Turn on swap partition
-swapon "${DISK}3"
+swapon "${SYS_DISK}3"
 
 
 
@@ -233,7 +277,11 @@ echo "Entering chroot environment..."
     echo "INSTALLATION_ROOT_PASSWD=${INSTALLATION_ROOT_PASSWD}"
     echo "USERNAME=${USERNAME}"
     echo "USER_PASSWD=${USER_PASSWD}"
-    echo "DISK=${DISK}"
+    echo "SYS_DISK=${SYS_DISK}"
+    echo "AUTOMOUNT_DISK=${AUTOMOUNT_DISK}"
+    if [ -n "${AUTOMOUNT_DISK}" ]; then
+        
+    fi
 } >> /mnt/temp_vars.sh
 
 # chroot into the installation and run part 2
