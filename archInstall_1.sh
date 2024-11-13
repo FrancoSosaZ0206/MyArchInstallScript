@@ -280,7 +280,10 @@ echo "Entering chroot environment..."
     echo "SYS_DISK=${SYS_DISK}"
     echo "AUTOMOUNT_DISK=${AUTOMOUNT_DISK}"
     if [ -n "${AUTOMOUNT_DISK}" ]; then
-        
+        echo "AUTOMOUNT_PATH=${AUTOMOUNT_PATH}"
+        echo "AUTOMOUNT_UUID=${AUTOMOUNT_UUID}"
+        echo "AUTOMOUNT_FSTYPE=${AUTOMOUNT_FSTYPE}"
+        echo "AUTOMOUNT_LABEL=${AUTOMOUNT_LABEL}"
     fi
 } >> /mnt/temp_vars.sh
 
