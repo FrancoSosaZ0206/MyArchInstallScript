@@ -34,10 +34,10 @@ if ! pacman -S ${HYPRLAND_PACKAGES} --noconfirm --needed; then
 fi
 
 # Create configuration directory for Hyprland
-mkdir -p ~/.config/hypr
+sudo mkdir -p /home/$USERNAME/.config/hypr
 
 # Basic Hyprland configuration file with Spanish (Latin America) layout
-cat <<EOL > ~/.config/hypr/hyprland.conf
+sudo cat <<EOL > /home/$USERNAME/.config/hypr/hyprland.conf
 monitor=,preferred,auto,1
 input {
     kb_layout = "latam"
@@ -51,7 +51,7 @@ bind = SUPER, D, exec wofi --show drun
 EOL
 
 # Set up Wayland session entry for Hyprland (will show as an option on login screen)
-cat <<EOL > /usr/share/wayland-sessions/hyprland.desktop
+sudo cat <<EOL > /usr/share/wayland-sessions/hyprland.desktop
 [Desktop Entry]
 Name=Hyprland
 Comment=A dynamic tiling Wayland compositor
@@ -61,9 +61,9 @@ DesktopNames=Hyprland
 EOL
 
 # Set Wayland-related environment variables
-echo "XDG_SESSION_TYPE=wayland" | tee -a /etc/environment
-echo "MOZ_ENABLE_WAYLAND=1" | tee -a /etc/environment
-echo "QT_QPA_PLATFORM=wayland" | tee -a /etc/environment
+sudo echo "XDG_SESSION_TYPE=wayland" | sudo tee -a /etc/environment
+sudo echo "MOZ_ENABLE_WAYLAND=1" | sudo tee -a /etc/environment
+sudo echo "QT_QPA_PLATFORM=wayland" | sudo tee -a /etc/environment
 
 
 
@@ -76,10 +76,10 @@ clear
 sudo pacman -S git --needed --noconfirm
 
 # Clone the yay repository
-git clone https://aur.archlinux.org/yay.git ~/yay
+git clone https://aur.archlinux.org/yay.git /home/$USERNAME/yay
 
 # Navigate to the yay directory and install yay
-cd ~/yay
+cd /home/$USERNAME/yay
 makepkg -si --noconfirm
 
 # Attempt to install visual studio code
@@ -87,6 +87,9 @@ makepkg -si --noconfirm
 if ! yay -S visual-studio-code-bin --noconfirm; then
     flatpak install flathub com.visualstudio.code -y
 fi
+
+# Go back to the root directory
+cd /
 
 
 
@@ -97,7 +100,7 @@ fi
 sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=${USERNAME}" /etc/gdm/custom.conf
 
 # Set the GTK3 theme for legacy applications to Adwaita-dark
-gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+sudo gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 
 # Add global aliases for yt-dlp commands
 sudo echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' >> /etc/bash.bashrc
@@ -166,10 +169,12 @@ if [ -f /temp_vars.sh ]; then
 fi
 
 # Define the output file path
-TODO_PATH="/home/$USER/Documents/postInstall_todo.txt"
+TODO_PATH="/home/$USERNAME/Documents/postInstall_todo.txt"
 
+# Create the file
+sudo touch "$TODO_PATH"
 # Write the instructions to the file using a heredoc
-cat << EOF > "$TODO_PATH"
+sudo cat << EOF > "$TODO_PATH"
 Post-installation process complete.
 However, there are certain things that need
 to be done manually.
