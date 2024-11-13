@@ -222,6 +222,7 @@ EOF
 # Notify the user
 clear
 head $TODO_PATH
+echo "..."
 echo "Post-installation to-do list has been saved to $TODO_PATH."
 
 # Cleanup - Delete this script
