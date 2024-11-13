@@ -262,16 +262,6 @@ genfstab -U -p /mnt >> /mnt/etc/fstab
 # ############################################# #
 # SECTION 9 - Chroot into the installation
 
-clear
-echo "Downloading the second part of the setup script..."
-
-# fetch the 2nd part of the script into the installation
-curl -o /mnt/archInstall_2.sh https://raw.githubusercontent.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_2.sh
-chmod +x /mnt/archInstall_2.sh
-
-clear
-echo "Entering chroot environment..."
-
 # Export common variables to a temporary file:
 {
     echo "INSTALLATION_ROOT_PASSWD=${INSTALLATION_ROOT_PASSWD}"
@@ -286,6 +276,19 @@ echo "Entering chroot environment..."
         echo "AUTOMOUNT_LABEL=${AUTOMOUNT_LABEL}"
     fi
 } >> /mnt/temp_vars.sh
+
+cat /mnt/temp_vars.sh
+read -p "Exported common variables to a temporary file..."
+
+clear
+echo "Downloading next part of setup script..."
+
+# fetch the 2nd part of the script into the installation
+curl -o /mnt/archInstall_2.sh https://raw.githubusercontent.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_2.sh
+chmod +x /mnt/archInstall_2.sh
+
+clear
+echo "Entering chroot environment..."
 
 # chroot into the installation and run part 2
 arch-chroot /mnt /archInstall_2.sh
