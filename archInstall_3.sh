@@ -26,12 +26,22 @@ mako dunst \
 swaybg swaylock swayidle \
 waybar \
 xdg-desktop-portal xdg-desktop-portal-hyprland \
-kitty wofi dkms"
+kitty wofi"
 
 # Install Hyprland and dependencies
 if ! sudo pacman -S ${HYPRLAND_PACKAGES} --noconfirm --needed; then
   echo "WARNING: could not install Hyprland and its dependencies."
 fi
+
+# Add nvidia to the MODULES array in /etc/mkinitcpio.conf
+sudo sed -i "s/^MODULES=(/&nvidia nvidia_modeset nvidia_uvm nvidia_drm/" /etc/mkinitcpio.conf
+
+# Create and edit /etc/modprobe.d/nvidia.conf
+sudo touch /etc/modprobe.d/nvidia.conf
+echo 'options nvidia_drm modeset=1 fbdev=1' | sudo tee /etc/modprobe.d/nvidia.conf
+
+# Rebuild initramfs
+sudo mkinitcpio -P
 
 # Create configuration directory for Hyprland
 sudo mkdir -p /home/$USERNAME/.config/hypr
