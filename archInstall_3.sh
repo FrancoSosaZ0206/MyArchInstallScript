@@ -96,10 +96,16 @@ fi
 # Enable autologin for the user
 sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=${USERNAME}" /etc/gdm/custom.conf
 
+# Set the GTK3 theme for legacy applications to Adwaita-dark
+gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+
 # Add global aliases for yt-dlp commands
 echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' >> /etc/bash.bashrc
 echo 'alias getMusicWithMetadata="yt-dlp -x --audio-format mp3 --audio-quality 0 -P ~/Music"' >> /etc/bash.bashrc
 echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/run/media/fran/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"/run/media/fran/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' >> /etc/bash.bashrc
+
+alias
+read -p "yt-dlp aliases set..."
 
 
 
@@ -115,45 +121,72 @@ PACKAGES="gnome-contacts gnome-maps gnome-music \
 pacman -R $PACKAGES --noconfirm
 read -p "Press enter to continue..."
 
+clear
+sudo sh -c "echo 'NoDisplay=true' >> /usr/share/applications/org.gnome.Extensions.desktop"
+tail /usr/share/applications/org.gnome.Extensions.desktop
+read -p "GNOME Extensions hidden..."
+
 # Remove temporary file used for the scripts:
 rm /temp_vars.sh
 
 if [ -f /temp_vars.sh ]; then
-    echo "Warning: temp_vars.sh could not be deleted."
+    clear
+    read -p "Warning: temp_vars.sh could not be deleted."
 fi
 
-# Print list of things that need to be done manually:
+# Define the output file path
+TODO_PATH="/home/$USER/Documents/postInstall_todo.txt"
+
+# Write the instructions to the file using a heredoc
+cat << EOF > "$TODO_PATH"
+Post-installation process complete.
+However, there are certain things that need
+to be done manually.
+Here's the list:
+
+GNOME Settings:
+- System >
+    > Language: if set to 'unspecified', set to 'English (US)'
+    > Formats: set to 'Argentina'
+    > Users: set user photo to one you like :) 
+- Keyboard: set input method language to 'Spanish (Latin American)'
+    and put it to the top. Select it from the top bar, too.
+- Displays > Night Light > 
+    > Times: from 18:00 to 10:00 
+    > Color Temperature: set the slider to 1/4 
+- Apps > Default Apps: make sure Rhythmbox is set for Music,
+    and set Photos to Image Viewer.
+- Appearance: tune to your liking :) 
+
+GNOME tweaks:
+- Windows > Titlebar Buttons: toggle Maximize and Minimize on.
+- Appearance > Styles: if not already, set 'Legacy Applications' to 'Adwaita-dark'
+
+Audacious:
+- Settings > 
+    > Appearance > 
+        > Theme: set to 'Dark'
+        > Icon theme: set to 'Flat (Dark)'
+    > Audio > ReplayGain: check 'Enable', set mode to 'Based on shuffle'
+      and set 'Amplify all files' to '-8.0' dB.
+    > Plugins: if not already, enable
+        - General > Lyrics
+        - General > Search Tool
+        - Effect > Crossfade (set 'On automatic song change > Overlap' to 1 second)
+        - Effect > Dynamic Range Compressor (set 'Center volume' to '0.6' and 'Dynamic Range' to '0.7')
+        - Effect > Silence Removal
+
+Others:
+- Turn wi-fi on (and set password)
+- Test bluetooth
+- Open Firefox and log into all necessary accounts (use phone and WhatsApp for this)
+- Apps menu: group apps in folders
+EOF
+
+# Notify the user
 clear
-echo -e "Post-installation process complete.\n \
-However, there are certain things that need\n \
-to be done manaully.\n \
-Here's the list:\n\n \
-
-GNOME Settings:\n \
-- System > \n \
-\t > Language: if set to 'unspecified', set to 'English (US)'\n \
-\t > Formats: set to 'Argentina'\n \
-\t > Users: set user photo to one you like :) \n \
-- Keyboard: set input method language to 'Spanish (Latin American)'\n \
-\t and put it to the top. Select it from the top bar, too.\n \
-- Displays > Night Light > \n
-\t > Times: from 18:00 to 10:00 \n \
-\t > Color Temperature: set the slider to 1/4 \n \
-- Apps > Default Apps: make sure Rhythmbox is set for Music,\n \
-\t and set Photos to Image Viewer.\n \
-- Appearance: tune to your liking :) \n\n \
-
-GNOME tweaks:\n \
-- Windows > Titlebar Buttons: toggle Maximize and Minimize on.\n \
-- Appearance > Styles: if not already, \
-set 'Legacy Applications' to 'Adwaita-dark'\n\n \
-
-Others:\n \
-- Turn wi-fi on (and set password)\n \
-- Test bluetooth\n \
-- Open Firefox and log into all necessary accounts \
-(use phone and WhatsApp for this)\n \
-- Apps menu: group apps in folders\n"
+head $TODO_PATH
+echo "Post-installation to-do list has been saved to $TODO_PATH."
 
 # Cleanup - Delete this script
 rm -- "$0"
