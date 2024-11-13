@@ -106,11 +106,14 @@ echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed
 # ############################################# #
 # SECTION 18 - Cleanup and Debloat
 
+clear
 # Remove unnecessary gnome apps (for me)
+echo -e "\nAttempting to remove unnecessary gnome apps...\n"
 PACKAGES="gnome-contacts gnome-maps gnome-music \
         gnome-weather gnome-tour gnome-system-monitor \
         totem malcontent epiphany snapshot"
 pacman -R $PACKAGES --noconfirm
+read -p "Press enter to continue..."
 
 # Remove temporary file used for the scripts:
 rm /temp_vars.sh
@@ -118,6 +121,39 @@ rm /temp_vars.sh
 if [ -f /temp_vars.sh ]; then
     echo "Warning: temp_vars.sh could not be deleted."
 fi
+
+# Print list of things that need to be done manually:
+clear
+echo -e "Post-installation process complete.\n \
+However, there are certain things that need\n \
+to be done manaully.\n \
+Here's the list:\n\n \
+
+GNOME Settings:\n \
+- System > \n \
+\t > Language: if set to 'unspecified', set to 'English (US)'\n \
+\t > Formats: set to 'Argentina'\n \
+\t > Users: set user photo to one you like :) \n \
+- Keyboard: set input method language to 'Spanish (Latin American)'\n \
+\t and put it to the top. Select it from the top bar, too.\n \
+- Displays > Night Light > \n
+\t > Times: from 18:00 to 10:00 \n \
+\t > Color Temperature: set the slider to 1/4 \n \
+- Apps > Default Apps: make sure Rhythmbox is set for Music,\n \
+\t and set Photos to Image Viewer.\n \
+- Appearance: tune to your liking :) \n\n \
+
+GNOME tweaks:\n \
+- Windows > Titlebar Buttons: toggle Maximize and Minimize on.\n \
+- Appearance > Styles: if not already, \
+set 'Legacy Applications' to 'Adwaita-dark'\n\n \
+
+Others:\n \
+- Turn wi-fi on (and set password)\n \
+- Test bluetooth\n \
+- Open Firefox and log into all necessary accounts \
+(use phone and WhatsApp for this)\n \
+- Apps menu: group apps in folders\n"
 
 # Cleanup - Delete this script
 rm -- "$0"
