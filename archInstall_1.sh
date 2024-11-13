@@ -191,7 +191,6 @@ mkswap "${SYS_DISK}3"            # swap partition
 # ############################################# #
 # SECTION 4 - Setting up an encrypted partition
 
-clear
 # Encrypting the partition and setting the passphrase automatically
 # --batch-mode avoids the "YES" confirmation prompt
 echo -n "${LVM_PASSWD}" | cryptsetup luksFormat --batch-mode "${SYS_DISK}4" -
@@ -200,7 +199,6 @@ echo -n "${LVM_PASSWD}" | cryptsetup open --type luks "${SYS_DISK}4" lvm -
 # ############################################# #
 # SECTION 5 - Configuring LVM
 
-clear
 # Create a physical volume
 pvcreate /dev/mapper/lvm
 
@@ -211,15 +209,12 @@ vgcreate volgroup0 /dev/mapper/lvm
 lvcreate -L 50GB volgroup0 -n lv_root   # root volume (50GB is more than enough to fill our system with programs)
 lvcreate -l 100%FREE volgroup0 -n lv_home  # home vol. (rest of the disk)
 
-# Clear the screen
-clear
 # Insert a kernel module
 modprobe dm_mod
 vgscan
 # read -p "Press Enter to continue..."
 vgchange -ay
 
-clear
 # Format the encrypted partitions
 mkfs.ext4 /dev/volgroup0/lv_root
 mkfs.ext4 /dev/volgroup0/lv_home
@@ -229,7 +224,6 @@ mkfs.ext4 /dev/volgroup0/lv_home
 # ############################################# #
 # SECTION 6 - Partition Mounting
 
-clear
 # Mount root partition
 mount /dev/volgroup0/lv_root /mnt
 
