@@ -162,7 +162,7 @@ clear
 # Install rest of the packages
 PACKAGES="firefox \
 rhythmbox audacious \
-reaper easytag picard qjackctl \
+reaper easytag qjackctl \
 gimp krita obs-studio \
 nano vim libreoffice-fresh \
 yt-dlp"
@@ -176,7 +176,8 @@ clear
 # Install remaining packages
 PACKAGES="com.mattjakeman.ExtensionManager \
 com.discordapp.Discord \
-org.gtk.Gtk3theme.Adwaita-dark"
+org.gtk.Gtk3theme.Adwaita-dark \
+org.musicbrainz.Picard"
 flatpak install flathub $PACKAGES -y
 
 
