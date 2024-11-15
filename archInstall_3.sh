@@ -43,44 +43,52 @@ echo 'options nvidia_drm modeset=1 fbdev=1' | sudo tee /etc/modprobe.d/nvidia.co
 # Rebuild initramfs
 sudo mkinitcpio -P
 
-# Create configuration directory for Hyprland
-sudo mkdir -p /home/$USERNAME/.config/hypr
+# ·············································· #
+# ················· DEPRECATED ················· #
+# ·············································· #
 
-# Basic Hyprland configuration file with Spanish (Latin America) layout
-sudo cat <<EOL > /home/$USERNAME/.config/hypr/hyprland.conf
-env = LIBVA_DRIVER_NAME,nvidia
-env = __GLX_VENDOR_LIBRARY_NAME,nvidia
+# # Create configuration directory for Hyprland
+# sudo mkdir -p /home/$USERNAME/.config/hypr
+# 
+# # Basic Hyprland configuration file with Spanish (Latin America) layout
+# sudo cat <<EOL > /home/$USERNAME/.config/hypr/hyprland.conf
+# env = LIBVA_DRIVER_NAME,nvidia
+# env = __GLX_VENDOR_LIBRARY_NAME,nvidia
+# 
+# cursor {
+#     no_hardware_cursors = true
+# }
+# 
+# monitor=,preferred,auto,1
+# input {
+#     kb_layout = "latam"
+# }
+# decoration {
+#     rounding = 5
+# }
+# exec-once = swaybg -i /usr/share/backgrounds/gnome/adwaita-day.jpg
+# bind = SUPER, RETURN, exec kitty
+# bind = SUPER, D, exec wofi --show drun
+# EOL
+# 
+# # Set up Wayland session entry for Hyprland (will show as an option on login screen)
+# sudo cat <<EOL > /usr/share/wayland-sessions/hyprland.desktop
+# [Desktop Entry]
+# Name=Hyprland
+# Comment=A dynamic tiling Wayland compositor
+# Exec=Hyprland
+# Type=Application
+# DesktopNames=Hyprland
+# EOL
+# 
+# # Set Wayland-related environment variables
+# echo "XDG_SESSION_TYPE=wayland" | sudo tee -a /etc/environment
+# echo "MOZ_ENABLE_WAYLAND=1" | sudo tee -a /etc/environment
+# echo "QT_QPA_PLATFORM=wayland" | sudo tee -a /etc/environment
 
-cursor {
-    no_hardware_cursors = true
-}
-
-monitor=,preferred,auto,1
-input {
-    kb_layout = "latam"
-}
-decoration {
-    rounding = 5
-}
-exec-once = swaybg -i /usr/share/backgrounds/gnome/adwaita-day.jpg
-bind = SUPER, RETURN, exec kitty
-bind = SUPER, D, exec wofi --show drun
-EOL
-
-# Set up Wayland session entry for Hyprland (will show as an option on login screen)
-sudo cat <<EOL > /usr/share/wayland-sessions/hyprland.desktop
-[Desktop Entry]
-Name=Hyprland
-Comment=A dynamic tiling Wayland compositor
-Exec=Hyprland
-Type=Application
-DesktopNames=Hyprland
-EOL
-
-# Set Wayland-related environment variables
-echo "XDG_SESSION_TYPE=wayland" | sudo tee -a /etc/environment
-echo "MOZ_ENABLE_WAYLAND=1" | sudo tee -a /etc/environment
-echo "QT_QPA_PLATFORM=wayland" | sudo tee -a /etc/environment
+# ·············································· #
+# ················· DEPRECATED ················· #
+# ·············································· #
 
 
 
@@ -229,6 +237,13 @@ Disks - Automounting disks:
 GNOME tweaks:
 - Windows > Titlebar Buttons: toggle Maximize and Minimize on.
 - Appearance > Styles: if not already, set 'Legacy Applications' to 'Adwaita-dark'
+
+Extension Manager - toggle these on:
+- Launch new instance
+- Light Style
+- Removable Drive Menu
+- Status Icons
+- User Themes
 
 Audacious:
 - Settings > Plugins: if not already, enable
