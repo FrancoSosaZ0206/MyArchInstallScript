@@ -243,14 +243,6 @@ GNOME Settings:
     - set Photos to Image Viewer.
 - Appearance: tune to your liking :) 
 
-Disks - Automounting disks:
-    - Go to the disk > partition you wanna automount,
-    - Go to the gears icon > Edit Mount Options...
-    - Toggle 'User Session Defaults' off.
-    - Make sure 'Mount at system startup' is ticked.
-    - (Optional) set 'Identify as' to 'LABEL=YOUR_DISK_LABEL'
-    - Click on 'Ok', it'll prompt for your password; put it and you're done here.
-
 GNOME tweaks:
 - Windows > Titlebar Buttons: toggle Maximize and Minimize on.
 - Appearance > Styles: if not already, set 'Legacy Applications' to 'Adwaita-dark'
