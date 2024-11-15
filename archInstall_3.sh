@@ -15,38 +15,81 @@ source /temp_vars.sh
 
 
 # ############################################# #
-# SECTION 15 - Install and Configure Hyprland
-# and its Dependencies
+# SECTION 15 - Special Packages Installation
 
-# Define Hyprland and dependencies
-HYPRLAND_PACKAGES="hyprland \
-wayland wayland-protocols xorg-xwayland \
-wl-clipboard grim slurp wf-recorder \
-mako dunst \
-swaybg swaylock swayidle \
-waybar \
-xdg-desktop-portal xdg-desktop-portal-hyprland \
-kitty wofi"
+clear
+# Add the AUR REPOSITORY (with yay)
+# Install prerequisites for building AUR packages
+sudo pacman -S git --needed --noconfirm
 
-# Install Hyprland and dependencies
-if ! sudo pacman -S ${HYPRLAND_PACKAGES} --noconfirm --needed; then
-  echo "WARNING: could not install Hyprland and its dependencies."
+# Clone the yay repository
+git clone https://aur.archlinux.org/yay.git /home/$USERNAME/yay
+
+# Navigate to the yay directory and install yay
+cd /home/$USERNAME/yay
+makepkg -si --noconfirm
+
+# Attempt to install visual studio code
+# if it can't be installed with yay, attempt with flatpak
+if ! yay -S visual-studio-code-bin --noconfirm; then
+    sudo flatpak install flathub com.visualstudio.code -y
 fi
 
-# Add nvidia to the MODULES array in /etc/mkinitcpio.conf
-sudo sed -i "s/^MODULES=(/&nvidia nvidia_modeset nvidia_uvm nvidia_drm/" /etc/mkinitcpio.conf
+# Go back to the root directory
+cd /
 
-# Create and edit /etc/modprobe.d/nvidia.conf
-sudo touch /etc/modprobe.d/nvidia.conf
-echo 'options nvidia_drm modeset=1 fbdev=1' | sudo tee /etc/modprobe.d/nvidia.conf
 
-# Rebuild initramfs
-sudo mkinitcpio -P
+
+# ############################################# #
+# SECTION 16 - Install and Configure Hyprland
+# and its Dependencies
+
+# Install ML4W (setup for Hyprland)
+# This also installs Hyprland, so no need to worry about that.
+
+# Navigate to yay directory
+cd /home/$USERNAME/yay
+# Attempt to download and install required utilities and ML4W
+if ! yay -S extra/hyprutils ml4w-hyprland --noconfirm; then
+    clear
+    read -p "WARNING: failed to download ML4W."
+else
+    read -p "ML4W downloaded successfully, proceeding with installation..."
+    ml4w-hyprland-setup
+fi
+
+
 
 # ·············································· #
 # ················· DEPRECATED ················· #
 # ·············································· #
 
+# # Define Hyprland and dependencies
+# HYPRLAND_PACKAGES="hyprland \
+# wayland wayland-protocols xorg-xwayland \
+# wl-clipboard grim slurp wf-recorder \
+# mako dunst \
+# swaybg swaylock swayidle \
+# waybar \
+# xdg-desktop-portal xdg-desktop-portal-hyprland \
+# kitty wofi"
+# 
+# # Install Hyprland and dependencies
+# if ! sudo pacman -S ${HYPRLAND_PACKAGES} --noconfirm --needed; then
+#   echo "WARNING: could not install Hyprland and its dependencies."
+# fi
+# 
+# # Add nvidia to the MODULES array in /etc/mkinitcpio.conf
+# sudo sed -i "s/^MODULES=(/&nvidia nvidia_modeset nvidia_uvm nvidia_drm/" /etc/mkinitcpio.conf
+# 
+# # Create and edit /etc/modprobe.d/nvidia.conf
+# sudo touch /etc/modprobe.d/nvidia.conf
+# echo 'options nvidia_drm modeset=1 fbdev=1' | sudo tee /etc/modprobe.d/nvidia.conf
+# 
+# # Rebuild initramfs
+# sudo mkinitcpio -P
+# 
+# 
 # # Create configuration directory for Hyprland
 # sudo mkdir -p /home/$USERNAME/.config/hypr
 # 
@@ -89,32 +132,6 @@ sudo mkinitcpio -P
 # ·············································· #
 # ················· DEPRECATED ················· #
 # ·············································· #
-
-
-
-# ############################################# #
-# SECTION 16 - Special Packages Installation
-
-clear
-# Add the AUR REPOSITORY (with yay)
-# Install prerequisites for building AUR packages
-sudo pacman -S git --needed --noconfirm
-
-# Clone the yay repository
-git clone https://aur.archlinux.org/yay.git /home/$USERNAME/yay
-
-# Navigate to the yay directory and install yay
-cd /home/$USERNAME/yay
-makepkg -si --noconfirm
-
-# Attempt to install visual studio code
-# if it can't be installed with yay, attempt with flatpak
-if ! yay -S visual-studio-code-bin --noconfirm; then
-    flatpak install flathub com.visualstudio.code -y
-fi
-
-# Go back to the root directory
-cd /
 
 
 
