@@ -105,6 +105,28 @@ sed -i "s/^#es_AR.UTF-8/es_AR.UTF-8/" /etc/locale.gen
 # Generate locales
 locale-gen
 
+# Show existing locale.conf (if any) for reference
+clear
+echo -e "Before adding locale custom settings:\n\n"
+cat /etc/locale.conf || echo "No existing /etc/locale.conf file."
+read -p "Press enter to continue..."
+
+# Add custom settings to the locale config file
+cat << EOF > /etc/locale.conf
+LANG=en_US.UTF-8
+LC_NUMERIC=es_AR.UTF-8
+LC_TIME=es_AR.UTF-8
+LC_MONETARY=es_AR.UTF-8
+LC_PAPER=es_AR.UTF-8
+LC_MEASUREMENT=es_AR.UTF-8
+EOF
+
+# Show the updated /etc/locale.conf
+clear
+echo -e "\n\nAfter adding locale custom settings:\n\n"
+cat /etc/locale.conf
+read -p "Press enter to continue..."
+
 clear
 # Add our encrypted volume to the GRUB config file
 sed -i "s,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3,& cryptdevice=${SYS_DISK}4:volgroup0," /etc/default/grub
@@ -125,9 +147,15 @@ fi
 # Mount EFI partition (the 1st we created)
 mount --mkdir "${SYS_DISK}1" /boot/EFI
 
+# Check if the partition was successfully mounted
+if ! mount | grep -q "/boot/EFI"; then
+  echo "ERROR: EFI partition couldn't be mounted!"
+  exit 1
+fi
+
 clear
 # Install GRUB
-grub-install --target=x86_64-efi --bootloader-id=grub_uefi --recheck
+grub-install --target=x86_64-efi --efi-directory=/boot/EFI --bootloader-id=Arch_btw --recheck
 
 # Copy grub locale file into our directory
 cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
