@@ -155,14 +155,26 @@ fi
 
 clear
 # Install GRUB
-grub-install --target=x86_64-efi --efi-directory=/boot/EFI --bootloader-id=Arch_btw --recheck
+if ! grub-install --target=x86_64-efi --efi-directory=/boot/EFI --bootloader-id=Arch_btw --recheck; then
+  echo "ERROR: GRUB installation failed!"
+  exit 1
+fi
 
 # Copy grub locale file into our directory
 cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 
 clear
+# Run os-prober to detect other OSes
+if ! os-prober; then
+  read -p "WARNING: os-prober did not detect any other operating systems."
+fi
+
+clear
 # Make grub config
-grub-mkconfig -o /boot/grub/grub.cfg
+if ! grub-mkconfig -o /boot/grub/grub.cfg; then
+  echo "ERROR: Failed to generate GRUB configuration!"
+  exit 1
+fi
 
 clear
 # Grant the newly created user sudo privileges
