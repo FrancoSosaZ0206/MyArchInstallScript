@@ -105,7 +105,7 @@ echo "root:${INSTALLER_ROOT_PASSWD}" | chpasswd
 # Clear the screen
 clear
 # Print disk layout
-lsblk
+lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
 # Prompt user to select a disk
 read -p "Enter the disk (e.g., 'sdb' for /dev/sdb) where the system will be: " SYS_DISK
 SYS_DISK="/dev/$SYS_DISK"  # Prepend with /dev
@@ -198,7 +198,10 @@ swapon "${SYS_DISK}3"
 # SECTION 7 - Installing the base system
 
 clear
-pacstrap /mnt base --noconfirm --needed
+if ! pacstrap /mnt base --noconfirm --needed; then
+    echo "ERROR: Failed to install base system. Exiting..."
+    exit 1
+fi
 
 # ############################################# #
 # SECTION 8 - Generate fstab file
