@@ -2,8 +2,9 @@
 # Fran's Arch Linux Automated Installation Script (part 3)
 
 # ############################################# #
-# Import variables from part 1
+# FIRST STEPS
 
+# Import variables from part 1
 echo -e "\nImporting data...\n"
 if [ ! -f /temp_vars.sh ]; then
     echo "Error: Data file /temp_vars.sh not found. Could not import data."
@@ -12,19 +13,24 @@ fi
 
 source /temp_vars.sh
 
-
-
-# ############################################# #
-# SECTION 15 - Special Packages Installation
-
 # Turn Wi-Fi on (if not already)
 sudo nmcli radio wifi on
+
 # Connect to Wi-Fi or exit if failed to do so
 sudo nmcli device wifi connect "${WIFI_SSID}" password "${WIFI_PASSWD}"
 if [ $? -ne 0 ]; then
   echo "Error: Failed to connect to Wi-Fi."
   exit 1
 fi
+
+# Mount 1TB disk (used for Audacious config later on)
+TB_MOUNTPOINT="/mnt/1TB"
+sudo mount --mkdir /dev/sda2 "${TB_MOUNTPOINT}"
+
+
+
+# ############################################# #
+# SECTION 15 - Special Packages Installation
 
 
 clear
@@ -45,8 +51,8 @@ if ! yay -S visual-studio-code-bin --noconfirm; then
     sudo flatpak install flathub com.visualstudio.code -y
 fi
 
-# Go back to the root directory
-cd /
+# Go back to the home directory
+cd
 
 
 
@@ -68,80 +74,8 @@ else
     ml4w-hyprland-setup
 fi
 
-
-
-# ·············································· #
-# ················· DEPRECATED ················· #
-# ·············································· #
-
-# # Define Hyprland and dependencies
-# HYPRLAND_PACKAGES="hyprland \
-# wayland wayland-protocols xorg-xwayland \
-# wl-clipboard grim slurp wf-recorder \
-# mako dunst \
-# swaybg swaylock swayidle \
-# waybar \
-# xdg-desktop-portal xdg-desktop-portal-hyprland \
-# kitty wofi"
-# 
-# # Install Hyprland and dependencies
-# if ! sudo pacman -S ${HYPRLAND_PACKAGES} --noconfirm --needed; then
-#   echo "WARNING: could not install Hyprland and its dependencies."
-# fi
-# 
-# # Add nvidia to the MODULES array in /etc/mkinitcpio.conf
-# sudo sed -i "s/^MODULES=(/&nvidia nvidia_modeset nvidia_uvm nvidia_drm/" /etc/mkinitcpio.conf
-# 
-# # Create and edit /etc/modprobe.d/nvidia.conf
-# sudo touch /etc/modprobe.d/nvidia.conf
-# echo 'options nvidia_drm modeset=1 fbdev=1' | sudo tee /etc/modprobe.d/nvidia.conf
-# 
-# # Rebuild initramfs
-# sudo mkinitcpio -P
-# 
-# 
-# # Create configuration directory for Hyprland
-# sudo mkdir -p /home/$USERNAME/.config/hypr
-# 
-# # Basic Hyprland configuration file with Spanish (Latin America) layout
-# sudo cat <<EOL > /home/$USERNAME/.config/hypr/hyprland.conf
-# env = LIBVA_DRIVER_NAME,nvidia
-# env = __GLX_VENDOR_LIBRARY_NAME,nvidia
-# 
-# cursor {
-#     no_hardware_cursors = true
-# }
-# 
-# monitor=,preferred,auto,1
-# input {
-#     kb_layout = "latam"
-# }
-# decoration {
-#     rounding = 5
-# }
-# exec-once = swaybg -i /usr/share/backgrounds/gnome/adwaita-day.jpg
-# bind = SUPER, RETURN, exec kitty
-# bind = SUPER, D, exec wofi --show drun
-# EOL
-# 
-# # Set up Wayland session entry for Hyprland (will show as an option on login screen)
-# sudo cat <<EOL > /usr/share/wayland-sessions/hyprland.desktop
-# [Desktop Entry]
-# Name=Hyprland
-# Comment=A dynamic tiling Wayland compositor
-# Exec=Hyprland
-# Type=Application
-# DesktopNames=Hyprland
-# EOL
-# 
-# # Set Wayland-related environment variables
-# echo "XDG_SESSION_TYPE=wayland" | sudo tee -a /etc/environment
-# echo "MOZ_ENABLE_WAYLAND=1" | sudo tee -a /etc/environment
-# echo "QT_QPA_PLATFORM=wayland" | sudo tee -a /etc/environment
-
-# ·············································· #
-# ················· DEPRECATED ················· #
-# ·············································· #
+# Go back to the home directory
+cd
 
 
 
@@ -164,7 +98,7 @@ apply_setting gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 # Add global aliases for yt-dlp commands
 echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' | sudo tee -a /etc/bash.bashrc > /dev/null
 echo 'alias getMusicWithMetadata="yt-dlp -x --audio-format mp3 --audio-quality 0 -P ~/Music"' | sudo tee -a /etc/bash.bashrc > /dev/null
-echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/run/media/fran/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"/run/media/fran/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' | sudo tee -a /etc/bash.bashrc > /dev/null
+echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"${TB_MOUNTPOINT}/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"${TB_MOUNTPOINT}/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' | sudo tee -a /etc/bash.bashrc > /dev/null
 
 alias
 read -p "yt-dlp aliases set..."
@@ -189,7 +123,7 @@ apply_setting gsettings set org.gnome.settings-daemon.plugins.color night-light-
 
 
 # Set audacious as default music player
-apply_setting xdg-mime default audacious.desktop audio/mpeg
+apply_setting xdg-mime default audacious.desktop audio/mp3
 # Set Image Viewer as default photos app
 apply_setting xdg-mime default eog.desktop image/jpeg
 
@@ -213,6 +147,77 @@ apply_setting gnome-extensions enable launch-new-instance@gnome-shell-extensions
 apply_setting gnome-extensions enable light-style@gnome-shell-extensions.gcampax.github.com
 apply_setting gnome-extensions enable user-theme@gnome-shell-extensions.gcampax.github.com
 
+# ······································ #
+# Audacious configuration:
+# ······································ #
+
+open_close_audacious() {
+    # open Audacious, if not already
+    if ! pgrep -x "audacious" > /dev/null; then
+        echo "Starting Audacious..."
+        audacious &
+        sleep 3 # Allow time for initialization
+    fi
+    echo "Closing Audacious..."
+    audacious -q
+    sleep 2 # Ensure proper shutdown
+}
+
+# Open and close Audacious to initialize files
+echo "Starting Audacious to generate its files..."
+open_close_audacious
+
+# Update configuration
+echo "Configuring Audacious settings..."
+cat << EOF > "/home/${USERNAME}/.config/audacious/config"
+[audacious]
+replay_gain_mode=2
+replay_gain_preamp=-8
+show_numbers_in_pl=TRUE
+shuffle=TRUE
+
+[audgui]
+filesel_path=${TB_MOUNTPOINT}/Franco/3. Música
+
+[audqt]
+theme=dark
+
+[compressor]
+center=0.6
+range=0.7
+
+[crossfade]
+length=1
+manual_length=1.5
+no_fade_in=TRUE
+
+[qtui]
+player_height=1011
+player_width=960
+
+[search-tool]
+monitor=TRUE
+rescan_on_startup=TRUE
+EOF
+echo "Configuration file updated."
+
+# Update playlist directory
+PLAYLIST_DIR="${TB_MOUNTPOINT}/Franco/3. Música"
+if [ -d "$PLAYLIST_DIR" ]; then
+    audtool playlist-clear
+    audtool playlist-addurl "$PLAYLIST_DIR"
+    echo "Playlist updated with music from $PLAYLIST_DIR"
+else
+    echo "Playlist directory does not exist: $PLAYLIST_DIR"
+fi
+
+# Restart Audacious to finalize configuration
+echo "Restarting Audacious..."
+open_close_audacious
+
+
+echo "Configuration completed!"
+
 
 
 # ############################################# #
@@ -224,7 +229,7 @@ echo -e "\nAttempting to remove unnecessary gnome apps...\n"
 PACKAGES="gnome-contacts gnome-maps gnome-music \
         gnome-weather gnome-tour gnome-system-monitor \
         totem malcontent epiphany snapshot"
-pacman -R $PACKAGES --noconfirm
+sudo pacman -R $PACKAGES --noconfirm
 read -p "Press enter to continue..."
 
 # clear
@@ -261,35 +266,36 @@ GNOME Settings:
     > Keyboard Shortcuts > View and Customize Shortcuts >
         > System:
             - Lock screen: rebind to 'Pause' ('Pausa' button on keyboard)
-            - Log out: rebind to 'Super+L'
         > Custom Shortcuts - Add (name | command | shortcut):
             - Power Off | gnome-session-quit --power-off | Super+P
             - Reboot | gnome-session-quit --reboot | Super+R
+            - Log Out | gnome-session-quit --logout | Super+L
             - Suspend | systemctl suspend | Super+S
             - Open Music Player | audacious | Super+M
-- Displays > Night Light > 
-    > Times: from 18:00 to 10:00 
-    > Color Temperature: set the slider to 1/4 
 - Apps > Default Apps: make sure
     - either Audacious or Rhythmbox are set for Music, and
     - set Photos to Image Viewer.
 - Appearance: tune to your liking :) 
 
-GNOME tweaks:
-- Windows > Titlebar Buttons: toggle Maximize and Minimize on.
-- Appearance > Styles: if not already, set 'Legacy Applications' to 'Adwaita-dark'
-
-Extension Manager - toggle these on:
-- Launch new instance
-- Light Style
-- Removable Drive Menu
-- Status Icons
-- User Themes
+Disks:
+    - Select 1,0 TB Hard Disk (partition 2 out of 3)
+    - Go to 'Gears button' > 'Edit Mount Options...'
+    - Make sure:
+        - 'User Session Defaults' is toggled off
+        - If not already,
+            - Toggle on 'Mount at system startup'
+            - Toggle on 'Show in user interface'
+    - Set 'Identify As' to 'LABEL=1TB'
+    - Set 'Filesystem Type' to 'ntfs'
+    - Click Ok, set your user password and exit.
 
 Audacious:
 - Settings > Plugins: if not already, enable
+    - General > Album Art
     - General > Lyrics
     - General > Search Tool
+    - Effect > Crossfade
+    - Effect > Dynamic Range Compressor
     - Effect > Silence Removal
 
 Rhythmbox:
@@ -306,9 +312,8 @@ Rhythmbox:
         > Plugins: enable 'ReplayGain', and in Preferences, set 'Pre-amp' to '-8,0 dB'.
 
 Others:
-- Turn wi-fi on (and set password)
 - Open Firefox and log into Mozilla, Google and GitHub (use phone and WhatsApp Web for this)
-- Apps menu: group apps in folders
+- Apps menu: organize - group apps in folders.
 EOF
 
 # Notify the user
