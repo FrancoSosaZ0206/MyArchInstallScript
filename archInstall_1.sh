@@ -221,6 +221,8 @@ genfstab -U -p /mnt >> /mnt/etc/fstab
     echo "USERNAME=${USERNAME}"
     echo "USER_PASSWD=${USER_PASSWD}"
     echo "SYS_DISK=${SYS_DISK}"
+    echo "WIFI_SSID=${WIFI_SSID}"
+    echo "WIFI_PASSWD=${WIFI_PASSWD}"
 } >> /mnt/temp_vars.sh
 
 cat /mnt/temp_vars.sh
