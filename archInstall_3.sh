@@ -214,44 +214,6 @@ apply_setting gnome-extensions enable light-style@gnome-shell-extensions.gcampax
 apply_setting gnome-extensions enable user-theme@gnome-shell-extensions.gcampax.github.com
 
 
-# ······································ #
-# Audacious configuration:
-# ······································ #
-
-AUDACIOUS_CONFIG_DIR="/home/$USERNAME/.config/audacious"
-AUDACIOUS_CONFIG_FILE="$AUDACIOUS_CONFIG_DIR/config.txt"
-
-# Create audacious config file
-mkdir -p "$AUDACIOUS_CONFIG_DIR"
-
-# Write my custom settings to it
-cat << EOF > "$AUDACIOUS_CONFIG_FILE"
-[audacious]
-replay_gain_mode=2
-replay_gain_preamp=-8
-shuffle=TRUE
-
-[audgui]
-filesel_path=/run/media/fran/1TB/Franco/3. Música
-
-[audqt]
-theme=dark
-
-[compressor]
-center=0.6
-range=0.7
-
-[crossfade]
-length=1
-
-[qtui]
-player_height=1011
-player_width=1920
-EOF
-
-fi
-
-
 
 # ############################################# #
 # SECTION 18 - Cleanup and Debloat
@@ -266,9 +228,8 @@ pacman -R $PACKAGES --noconfirm
 read -p "Press enter to continue..."
 
 # clear
+# Hide GNOME extensions
 sudo sh -c "echo 'NoDisplay=true' >> /usr/share/applications/org.gnome.Extensions.desktop"
-tail /usr/share/applications/org.gnome.Extensions.desktop
-read -p "GNOME Extensions hidden..."
 
 # Remove temporary file used for the scripts:
 sudo rm /temp_vars.sh
@@ -292,7 +253,6 @@ Here's the list:
 
 GNOME Settings:
 - System >
-    > Language: if set to 'unspecified', set to 'English (US)'
     > Formats: set to 'Argentina'
     > Users: set user photo to one you like :) 
 - Keyboard >
