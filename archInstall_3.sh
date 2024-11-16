@@ -17,6 +17,16 @@ source /temp_vars.sh
 # ############################################# #
 # SECTION 15 - Special Packages Installation
 
+# Turn Wi-Fi on (if not already)
+sudo nmcli radio wifi on
+# Connect to Wi-Fi or exit if failed to do so
+sudo nmcli device wifi connect "${WIFI_SSID}" password "${WIFI_PASSWD}"
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to connect to Wi-Fi."
+  exit 1
+fi
+
+
 clear
 # Add the AUR REPOSITORY (with yay)
 # Install prerequisites for building AUR packages
@@ -138,24 +148,81 @@ fi
 # ############################################# #
 # SECTION 17 - Configuration and Tweaks
 
+apply_setting() {
+    "$@"
+    if [ $? -ne 0 ]; then
+        echo "WARNING: $1 failed to apply."
+    fi
+}
+
 # Enable autologin for the user
 sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=${USERNAME}" /etc/gdm/custom.conf
 
 # Set the GTK3 theme for legacy applications to Adwaita-dark
-sudo gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+apply_setting gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 
 # Add global aliases for yt-dlp commands
-sudo echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' >> /etc/bash.bashrc
-sudo echo 'alias getMusicWithMetadata="yt-dlp -x --audio-format mp3 --audio-quality 0 -P ~/Music"' >> /etc/bash.bashrc
-sudo echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/run/media/fran/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"/run/media/fran/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' >> /etc/bash.bashrc
+echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' | sudo tee -a /etc/bash.bashrc > /dev/null
+echo 'alias getMusicWithMetadata="yt-dlp -x --audio-format mp3 --audio-quality 0 -P ~/Music"' | sudo tee -a /etc/bash.bashrc > /dev/null
+echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/run/media/fran/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"/run/media/fran/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' | sudo tee -a /etc/bash.bashrc > /dev/null
 
 alias
 read -p "yt-dlp aliases set..."
 
+# ······································ #
+# GNOME Settings configuration:
+# ······································ #
+
+# Set input language to Spanish and set as active:
+apply_setting gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
+
+
+# Night Light configuration:
+
+# Enable from 18:00 to 10:00
+apply_setting gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
+apply_setting gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 18
+apply_setting gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 10
+
+# Set temperature to 3500 (1/4th of the bar in GNOME Settings > Display > Night Light)
+apply_setting gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 3500
+
+
+# Set audacious as default music player
+apply_setting xdg-mime default audacious.desktop audio/mpeg
+# Set Image Viewer as default photos app
+apply_setting xdg-mime default eog.desktop image/jpeg
+
+
+# ······································ #
+# GNOME Tweaks configuration:
+# ······································ #
+
+# Enable maximize and minimize titlebar buttons
+apply_setting gsettings set org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
+# Set Appearance > Style > Legacy Applications to 'Adwaita-dark'
+apply_setting gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+
+
+# ······································ #
+# GNOME Tweaks configuration:
+# ······································ #
+
+# Enable extensions
+apply_setting gnome-extensions enable launch-new-instance@extension-id
+apply_setting gnome-extensions enable light-style@extension-id
+
+
+# ······································ #
+# Audacious configuration:
+# ······································ #
+
 # Create audacious config file
-sudo touch "/home/$USERNAME/.config/audacious/config.txt"
-# Write my custom settings to it
-sudo cat << EOF > "/home/$USERNAME/.config/audacious/config.txt"
+touch "/home/$USERNAME/.config/audacious/config.txt"
+if [ -f "/home/$USERNAME/.config/audacious/config.txt" ]; then
+
+    # Write my custom settings to it
+    cat << EOF > "/home/$USERNAME/.config/audacious/config.txt"
 [audacious]
 replay_gain_mode=2
 replay_gain_preamp=-8
@@ -179,12 +246,37 @@ player_height=1011
 player_width=1920
 EOF
 
+fi
+
+
+# ······································ #
+# Rhythmbox configuration:
+# ······································ #
+
+# Show Play Queue in Side Pane
+apply_setting gsettings set org.gnome.rhythmbox.view show-play-queue true
+# Set Visible Columns (Last Played, Play Count)
+apply_setting gsettings set org.gnome.rhythmbox.view visible-columns "['last-played', 'play-count']"
+
+# Enable Crossfade and set duration to 1 second
+apply_setting gsettings set org.gnome.rhythmbox.plugins.crossfade enabled true
+apply_setting gsettings set org.gnome.rhythmbox.plugins.crossfade duration 1
+
+# Set Library Location to Watch for New Files
+apply_setting gsettings set org.gnome.rhythmbox.library watch-library true
+
+# Set Library Preferred Format to MP3
+apply_setting gsettings set org.gnome.rhythmbox.library preferred-format 'audio/mpeg'
+
+# Enable ReplayGain
+apply_setting gsettings set org.gnome.rhythmbox.plugins.replaygain enabled true
+
 
 
 # ############################################# #
 # SECTION 18 - Cleanup and Debloat
 
-clear
+# clear
 # Remove unnecessary gnome apps (for me)
 echo -e "\nAttempting to remove unnecessary gnome apps...\n"
 PACKAGES="gnome-contacts gnome-maps gnome-music \
@@ -193,7 +285,7 @@ PACKAGES="gnome-contacts gnome-maps gnome-music \
 pacman -R $PACKAGES --noconfirm
 read -p "Press enter to continue..."
 
-clear
+# clear
 sudo sh -c "echo 'NoDisplay=true' >> /usr/share/applications/org.gnome.Extensions.desktop"
 tail /usr/share/applications/org.gnome.Extensions.desktop
 read -p "GNOME Extensions hidden..."
@@ -202,8 +294,8 @@ read -p "GNOME Extensions hidden..."
 rm /temp_vars.sh
 
 if [ -f /temp_vars.sh ]; then
-    clear
-    read -p "Warning: temp_vars.sh could not be deleted."
+    # clear
+    echo "Warning: temp_vars.sh could not be deleted."
 fi
 
 # Define the output file path
@@ -260,15 +352,27 @@ Audacious:
     - General > Search Tool
     - Effect > Silence Removal
 
+Rhythmbox:
+- 'Three dots' >
+    > View > Check 'Play Queue in Side Pane'
+    > Preferences >
+        > General > Visible Columns: check
+            - Last played
+            - Play count
+        > Playback > Player Backend: enable Crossfade and set its duration to 1 second.
+        > Music >
+            > Library Location: check 'Watch my library for new files'
+            > Library Structure > Preferred format: change it to 'MPEG Layer 3 Audio'.
+        > Plugins: enable 'ReplayGain', and in Preferences, set 'Pre-amp' to '-8,0 dB'.
+
 Others:
 - Turn wi-fi on (and set password)
-- Test bluetooth
 - Open Firefox and log into Mozilla, Google and GitHub (use phone and WhatsApp Web for this)
 - Apps menu: group apps in folders
 EOF
 
 # Notify the user
-clear
+# clear
 head $TODO_PATH
 echo '...'
 echo "Post-installation to-do list has been saved to $TODO_PATH."
