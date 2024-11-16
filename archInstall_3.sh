@@ -209,20 +209,23 @@ apply_setting gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
 # ······································ #
 
 # Enable extensions
-apply_setting gnome-extensions enable launch-new-instance@extension-id
-apply_setting gnome-extensions enable light-style@extension-id
+apply_setting gnome-extensions enable launch-new-instance@gnome-shell-extensions.gcampax.github.com
+apply_setting gnome-extensions enable light-style@gnome-shell-extensions.gcampax.github.com
+apply_setting gnome-extensions enable user-theme@gnome-shell-extensions.gcampax.github.com
 
 
 # ······································ #
 # Audacious configuration:
 # ······································ #
 
-# Create audacious config file
-touch "/home/$USERNAME/.config/audacious/config.txt"
-if [ -f "/home/$USERNAME/.config/audacious/config.txt" ]; then
+AUDACIOUS_CONFIG_DIR="/home/$USERNAME/.config/audacious"
+AUDACIOUS_CONFIG_FILE="$AUDACIOUS_CONFIG_DIR/config.txt"
 
-    # Write my custom settings to it
-    cat << EOF > "/home/$USERNAME/.config/audacious/config.txt"
+# Create audacious config file
+mkdir -p "$AUDACIOUS_CONFIG_DIR"
+
+# Write my custom settings to it
+cat << EOF > "$AUDACIOUS_CONFIG_FILE"
 [audacious]
 replay_gain_mode=2
 replay_gain_preamp=-8
@@ -256,7 +259,7 @@ fi
 # Show Play Queue in Side Pane
 apply_setting gsettings set org.gnome.rhythmbox.view show-play-queue true
 # Set Visible Columns (Last Played, Play Count)
-apply_setting gsettings set org.gnome.rhythmbox.view visible-columns "['last-played', 'play-count']"
+apply_setting gsettings set org.gnome.rhythmbox.view visible-columns "['year', 'last-played', 'play-count']"
 
 # Enable Crossfade and set duration to 1 second
 apply_setting gsettings set org.gnome.rhythmbox.plugins.crossfade enabled true
@@ -291,7 +294,7 @@ tail /usr/share/applications/org.gnome.Extensions.desktop
 read -p "GNOME Extensions hidden..."
 
 # Remove temporary file used for the scripts:
-rm /temp_vars.sh
+sudo rm /temp_vars.sh
 
 if [ -f /temp_vars.sh ]; then
     # clear
@@ -378,7 +381,7 @@ echo '...'
 echo "Post-installation to-do list has been saved to $TODO_PATH."
 
 # Cleanup - Delete this script
-rm -- "$0"
+sudo rm -- "$0"
 
 exit 0
 
