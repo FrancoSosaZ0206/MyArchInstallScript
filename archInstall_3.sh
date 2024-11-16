@@ -252,29 +252,6 @@ EOF
 fi
 
 
-# ······································ #
-# Rhythmbox configuration:
-# ······································ #
-
-# Show Play Queue in Side Pane
-apply_setting gsettings set org.gnome.rhythmbox.view show-play-queue true
-# Set Visible Columns (Last Played, Play Count)
-apply_setting gsettings set org.gnome.rhythmbox.view visible-columns "['year', 'last-played', 'play-count']"
-
-# Enable Crossfade and set duration to 1 second
-apply_setting gsettings set org.gnome.rhythmbox.plugins.crossfade enabled true
-apply_setting gsettings set org.gnome.rhythmbox.plugins.crossfade duration 1
-
-# Set Library Location to Watch for New Files
-apply_setting gsettings set org.gnome.rhythmbox.library watch-library true
-
-# Set Library Preferred Format to MP3
-apply_setting gsettings set org.gnome.rhythmbox.library preferred-format 'audio/mpeg'
-
-# Enable ReplayGain
-apply_setting gsettings set org.gnome.rhythmbox.plugins.replaygain enabled true
-
-
 
 # ############################################# #
 # SECTION 18 - Cleanup and Debloat
