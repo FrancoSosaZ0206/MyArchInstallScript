@@ -163,6 +163,8 @@ open_close_audacious() {
     sleep 2 # Ensure proper shutdown
 }
 
+MUSIC_LIB="${TB_MOUNTPOINT}/Franco/3. Música/1. Biblioteca de Música"
+
 # Open and close Audacious to initialize files
 echo "Starting Audacious to generate its files..."
 open_close_audacious
@@ -177,7 +179,7 @@ show_numbers_in_pl=TRUE
 shuffle=TRUE
 
 [audgui]
-filesel_path=${TB_MOUNTPOINT}/Franco/3. Música
+filesel_path=${MUSIC_LIB}
 
 [audqt]
 theme=dark
@@ -202,13 +204,12 @@ EOF
 echo "Configuration file updated."
 
 # Update playlist directory
-PLAYLIST_DIR="${TB_MOUNTPOINT}/Franco/3. Música"
-if [ -d "$PLAYLIST_DIR" ]; then
+if [ -d "$MUSIC_LIB" ]; then
     audtool playlist-clear
-    audtool playlist-addurl "$PLAYLIST_DIR"
-    echo "Playlist updated with music from $PLAYLIST_DIR"
+    audtool playlist-addurl "$MUSIC_LIB"
+    echo "Playlist updated with music from $MUSIC_LIB"
 else
-    echo "Playlist directory does not exist: $PLAYLIST_DIR"
+    echo "Playlist directory does not exist: $MUSIC_LIB"
 fi
 
 # Restart Audacious to finalize configuration
