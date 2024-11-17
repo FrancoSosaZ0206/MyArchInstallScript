@@ -319,11 +319,7 @@ to be done manually.
 Here's the list:
 
 GNOME Settings:
-- System >
-    > Date & Time:
-        - Toggle 'Automatic Date & Time' and 'Week Day' on
-        - Set 'Time Zone' to -03 (Buenos Aires, Argentina)
-    > Users: set user photo to one you like :) 
+- System > Users: set user photo to one you like :) 
 - Keyboard > Keyboard Shortcuts > View and Customize Shortcuts >
         > System:
             - Lock screen: rebind to 'Pause' ('Pausa' button on keyboard)
