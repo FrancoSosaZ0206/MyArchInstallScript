@@ -151,14 +151,16 @@ apply_setting gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'l
 # Set formats region to Argentina
 apply_setting gsettings set org.gnome.system.locale region 'es_AR.UTF-8'
 
+
 # Enable automatic Date & Time
-apply_setting gsettings set org.gnome.desktop.datetime automatic-datetime true
+sudo timedatectl set-ntp true  # Enable Network Time Protocol (NTP)
 
 # Show Weekdays
 apply_setting gsettings set org.gnome.desktop.interface clock-show-weekday true
 
 # Set timezone to GMT-03 (Buenos Aires)
 apply_setting timedatectl set-timezone America/Argentina/Buenos_Aires
+
 
 
 # Night Light configuration:
