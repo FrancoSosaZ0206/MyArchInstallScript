@@ -131,9 +131,6 @@ clear
 # Add our encrypted volume to the GRUB config file
 sed -i "s,GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3,& cryptdevice=${SYS_DISK}4:volgroup0," /etc/default/grub
 
-# Enabling os-prober to detect multi-os systems in GRUB:
-sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
-
 # Define the expected line for verification
 EXPECTED="GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 cryptdevice=${SYS_DISK}4:volgroup0 quiet\""
 
@@ -162,12 +159,6 @@ fi
 
 # Copy grub locale file into our directory
 cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
-
-clear
-# Run os-prober to detect other OSes
-if ! os-prober; then
-  read -p "WARNING: os-prober did not detect any other operating systems."
-fi
 
 clear
 # Make grub config
