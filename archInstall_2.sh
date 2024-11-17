@@ -69,7 +69,7 @@ lvm2 \
 nvidia nvidia-utils nvidia-lts \
 networkmanager bluez blueman bluez-utils \
 dosfstools mtools os-prober sudo \
-gparted htop man neofetch \
+gparted htop man neofetch ntfs-3g \
 gnome gnome-tweaks gnome-themes-extra"
 
 # Perform the installation (enjoy!)
