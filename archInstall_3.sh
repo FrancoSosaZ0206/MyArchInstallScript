@@ -60,6 +60,9 @@ clear
 # Install prerequisites for building AUR packages
 sudo pacman -S git --needed --noconfirm
 
+# Temporarily allow the current user to run sudo without a password for pacman commands (makepkg)
+echo "$USER ALL=(ALL) NOPASSWD: /usr/bin/pacman" | sudo tee -a /etc/sudoers.d/makepkg
+
 # Clone the yay repository
 git clone https://aur.archlinux.org/yay.git $HOME/yay
 
@@ -82,6 +85,9 @@ git clone https://aur.archlinux.org/webcord-git.git $HOME/webcord-git
 # Navigate to the webcord directory and install it
 cd $HOME/webcord-git
 makepkg -si --noconfirm
+
+# Delete temporary sudoers file
+sudo rm -f /etc/sudoers.d/makepkg
 
 
 
@@ -128,10 +134,12 @@ apply_setting gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 # Add global aliases for yt-dlp commands
 echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' | sudo tee -a /etc/bash.bashrc > /dev/null
 echo 'alias getMusicWithMetadata="yt-dlp -x --audio-format mp3 --audio-quality 0 -P ~/Music"' | sudo tee -a /etc/bash.bashrc > /dev/null
-echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"$/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' | sudo tee -a /etc/bash.bashrc > /dev/null
+echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' | sudo tee -a /etc/bash.bashrc > /dev/null
 
-alias
-read -p "yt-dlp aliases set..."
+tail /etc/bash.bashrc
+echo "yt-dlp aliases set..." &
+sleep 3
+
 
 # ······································ #
 # GNOME Settings configuration:
@@ -139,8 +147,18 @@ read -p "yt-dlp aliases set..."
 
 # Set input language to Spanish and set as active:
 apply_setting gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
+
 # Set formats region to Argentina
-gsettings set org.gnome.system.locale region 'es_AR.UTF-8'
+apply_setting gsettings set org.gnome.system.locale region 'es_AR.UTF-8'
+
+# Enable automatic Date & Time
+apply_setting gsettings set org.gnome.desktop.datetime automatic-datetime true
+
+# Show Weekdays
+apply_setting gsettings set org.gnome.desktop.interface clock-show-weekday true
+
+# Set timezone to GMT-03 (Buenos Aires)
+apply_setting timedatectl set-timezone America/Argentina/Buenos_Aires
 
 
 # Night Light configuration:
@@ -160,7 +178,6 @@ apply_setting xdg-mime default audacious.desktop audio/mpeg
 apply_setting xdg-mime default org.gnome.Loupe.desktop image/jpeg
 
 
-
 # ······································ #
 # GNOME Tweaks configuration:
 # ······································ #
@@ -169,6 +186,12 @@ apply_setting xdg-mime default org.gnome.Loupe.desktop image/jpeg
 apply_setting gsettings set org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
 # Set Appearance > Style > Legacy Applications to 'Adwaita-dark'
 apply_setting gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+
+# Set cursor to Bibata-Modern-Ice
+apply_setting gsettings set org.gnome.desktop.interface cursor-theme 'Bibata-Modern-Ice'
+
+# Set icons to Papirus
+apply_setting gsettings set org.gnome.desktop.interface icon-theme 'Papirus'
 
 
 # ······································ #
@@ -300,7 +323,11 @@ to be done manually.
 Here's the list:
 
 GNOME Settings:
-- System > Users: set user photo to one you like :) 
+- System >
+    > Date & Time:
+        - Toggle 'Automatic Date & Time' and 'Week Day' on
+        - Set 'Time Zone' to -03 (Buenos Aires, Argentina)
+    > Users: set user photo to one you like :) 
 - Keyboard > Keyboard Shortcuts > View and Customize Shortcuts >
         > System:
             - Lock screen: rebind to 'Pause' ('Pausa' button on keyboard)
@@ -328,7 +355,7 @@ Disks:
     - Click Ok, set your user password and exit.
 
 Audacious:
-- Settings > Plugins: if not already, enable
+- Settings > Plugins: enable
     - General > Album Art
     - General > Lyrics
     - General > Search Tool
@@ -361,8 +388,8 @@ echo "Post-installation to-do list has been saved to $TODO_PATH."
 
 
 # Remove temporary file used for the scripts
-if [ ! sudo rm -f /temp_vars.sh ]; then
-    echo "Warning: temp_vars.sh could not be deleted."
+if [ ! -f /temp_vars.sh ]; then
+    sudo rm -f /temp_vars.sh || echo "Warning: temp_vars.sh could not be deleted."
 fi
 
 # Delete this script
