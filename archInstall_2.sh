@@ -151,6 +151,9 @@ if ! grub-mkconfig -o /boot/grub/grub.cfg; then
   exit 1
 fi
 
+
+# SUDOERS CONFIGURATION:
+
 # Grant the newly created user sudo privileges
 echo '%wheel ALL=(ALL) ALL' | EDITOR='tee -a' visudo
 
@@ -158,6 +161,13 @@ if grep '# %wheel ALL=(ALL) ALL' /etc/sudoers; then
   echo "ERROR: couldn't grant sudo privileges to $USERNAME."
   read -p "Press enter to continue..."
 fi
+
+# (Easter Egg) Enable insults
+echo 'Defaults insults' | EDITOR='tee -a' visudo
+
+# Customize sudo prompt for password:
+echo 'export SUDO_PROMPT="$(tput setab 1 setaf 7 bold)[sudo]$(tput sgr0) $(tput setaf 6)password for$(tput sgr0) $(tput setaf 5)%p$(tput sgr0): "' | EDITOR='tee -a' visudo
+
 
 # Enable GNOME greeter
 systemctl enable gdm
