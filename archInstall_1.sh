@@ -235,7 +235,10 @@ chmod +x /mnt/archInstall_2.sh
 
 # chroot into the installation and run part 2
 echo "Entering chroot environment..."
-arch-chroot /mnt /archInstall_2.sh
+arch-chroot /mnt /archInstall_2.sh || {
+    echo "Error during chroot setup. Aborting unmount and reboot."
+    exit 1
+}
 
 # After part 2:
 
