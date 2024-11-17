@@ -39,10 +39,10 @@ clear
 sudo pacman -S git --needed --noconfirm
 
 # Clone the yay repository
-git clone https://aur.archlinux.org/yay.git /home/$USERNAME/yay
+git clone https://aur.archlinux.org/yay.git $HOME/yay
 
 # Navigate to the yay directory and install yay
-cd /home/$USERNAME/yay
+cd $HOME/yay
 makepkg -si --noconfirm
 
 # Attempt to install visual studio code
@@ -64,7 +64,7 @@ cd
 # This also installs Hyprland, so no need to worry about that.
 
 # Navigate to yay directory
-cd /home/$USERNAME/yay
+cd $HOME/yay
 # Attempt to download and install required utilities and ML4W
 if ! yay -S extra/hyprutils ml4w-hyprland --noconfirm; then
     clear
@@ -98,7 +98,7 @@ apply_setting gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 # Add global aliases for yt-dlp commands
 echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' | sudo tee -a /etc/bash.bashrc > /dev/null
 echo 'alias getMusicWithMetadata="yt-dlp -x --audio-format mp3 --audio-quality 0 -P ~/Music"' | sudo tee -a /etc/bash.bashrc > /dev/null
-echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"${TB_MOUNTPOINT}/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"${TB_MOUNTPOINT}/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' | sudo tee -a /etc/bash.bashrc > /dev/null
+echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"$/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' | sudo tee -a /etc/bash.bashrc > /dev/null
 
 alias
 read -p "yt-dlp aliases set..."
@@ -109,6 +109,8 @@ read -p "yt-dlp aliases set..."
 
 # Set input language to Spanish and set as active:
 apply_setting gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
+# Set formats region to Argentina
+gsettings set org.gnome.system.locale region 'es_AR.UTF-8'
 
 
 # Night Light configuration:
@@ -123,9 +125,10 @@ apply_setting gsettings set org.gnome.settings-daemon.plugins.color night-light-
 
 
 # Set audacious as default music player
-apply_setting xdg-mime default audacious.desktop audio/mp3
+apply_setting xdg-mime default audacious.desktop audio/mpeg
 # Set Image Viewer as default photos app
-apply_setting xdg-mime default eog.desktop image/jpeg
+apply_setting xdg-mime default org.gnome.Loupe.desktop image/jpeg
+
 
 
 # ······································ #
@@ -139,39 +142,53 @@ apply_setting gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
 
 
 # ······································ #
-# GNOME Tweaks configuration:
+# GNOME Extensions configuration:
 # ······································ #
 
+# Check if tweaks exist first before enabling
+apply_gnome_extension() {
+    if gnome-extensions list | grep -q "$1"; then
+        apply_setting gnome-extensions enable "$1"
+    else
+        echo "Extension $1 not found. Skipping."
+    fi
+}
+
 # Enable extensions
-apply_setting gnome-extensions enable launch-new-instance@gnome-shell-extensions.gcampax.github.com
-apply_setting gnome-extensions enable light-style@gnome-shell-extensions.gcampax.github.com
-apply_setting gnome-extensions enable user-theme@gnome-shell-extensions.gcampax.github.com
+apply_gnome_extension "launch-new-instance@gnome-shell-extensions.gcampax.github.com"
+apply_gnome_extension "light-style@gnome-shell-extensions.gcampax.github.com"
+apply_gnome_extension "user-theme@gnome-shell-extensions.gcampax.github.com"
+
 
 # ······································ #
 # Audacious configuration:
 # ······································ #
 
-open_close_audacious() {
-    # open Audacious, if not already
-    if ! pgrep -x "audacious" > /dev/null; then
-        echo "Starting Audacious..."
-        audacious &
-        sleep 3 # Allow time for initialization
-    fi
-    echo "Closing Audacious..."
-    audacious -q
-    sleep 2 # Ensure proper shutdown
-}
+# If audacious is installed, proceed
+if ! command -v audacious &>/dev/null; then
+    echo "Audacious is not installed. Skipping configuration."
+else
+    open_close_audacious() {
+        # open Audacious, if not already
+        if ! pgrep -x "audacious" > /dev/null; then
+            echo "Starting Audacious..."
+            audacious &
+            sleep 3 # Allow time for initialization
+        fi
+        echo "Closing Audacious..."
+        audacious -q
+        sleep 2 # Ensure proper shutdown
+    }
 
-MUSIC_LIB="${TB_MOUNTPOINT}/Franco/3. Música/1. Biblioteca de Música"
+    MUSIC_LIB="${TB_MOUNTPOINT}/Franco/3. Música/1. Biblioteca de Música"
 
-# Open and close Audacious to initialize files
-echo "Starting Audacious to generate its files..."
-open_close_audacious
+    # Open and close Audacious to initialize files
+    echo "Letting Audacious to initialize its files..."
+    open_close_audacious
 
-# Update configuration
-echo "Configuring Audacious settings..."
-cat << EOF > "/home/${USERNAME}/.config/audacious/config"
+    # Update configuration
+    echo "Configuring Audacious settings..."
+    cat << EOF > "/home/${USERNAME}/.config/audacious/config"
 [audacious]
 replay_gain_mode=2
 replay_gain_preamp=-8
@@ -201,23 +218,26 @@ player_width=960
 monitor=TRUE
 rescan_on_startup=TRUE
 EOF
-echo "Configuration file updated."
+    echo "Configuration file updated."
 
-# Update playlist directory
-if [ -d "$MUSIC_LIB" ]; then
-    audtool playlist-clear
-    audtool playlist-addurl "$MUSIC_LIB"
-    echo "Playlist updated with music from $MUSIC_LIB"
-else
-    echo "Playlist directory does not exist: $MUSIC_LIB"
+    # Update playlist directory
+    if [ -d "$MUSIC_LIB" ]; then
+        audtool playlist-clear
+        audtool playlist-addurl "$MUSIC_LIB"
+        echo "Playlist updated with music from $MUSIC_LIB"
+    else
+        echo "Playlist directory does not exist: $MUSIC_LIB"
+    fi
+
+    # Restart Audacious to finalize configuration
+    echo "Restarting Audacious..."
+    open_close_audacious
+
+
+    echo "Configuration completed!"
 fi
 
-# Restart Audacious to finalize configuration
-echo "Restarting Audacious..."
-open_close_audacious
 
-
-echo "Configuration completed!"
 
 
 
@@ -237,16 +257,8 @@ read -p "Press enter to continue..."
 # Hide GNOME extensions
 sudo sh -c "echo 'NoDisplay=true' >> /usr/share/applications/org.gnome.Extensions.desktop"
 
-# Remove temporary file used for the scripts:
-sudo rm /temp_vars.sh
-
-if [ -f /temp_vars.sh ]; then
-    # clear
-    echo "Warning: temp_vars.sh could not be deleted."
-fi
-
 # Define the output file path
-TODO_PATH="/home/$USERNAME/Documents/postInstall_todo.txt"
+TODO_PATH="$HOME/Documents/postInstall_todo.txt"
 
 # Create the file
 sudo touch "$TODO_PATH"
@@ -258,13 +270,8 @@ to be done manually.
 Here's the list:
 
 GNOME Settings:
-- System >
-    > Formats: set to 'Argentina'
-    > Users: set user photo to one you like :) 
-- Keyboard >
-    > Input Sources: set input method language to 'Spanish (Latin American)'
-    and put it to the top. Select it from the top bar, too.
-    > Keyboard Shortcuts > View and Customize Shortcuts >
+- System > Users: set user photo to one you like :) 
+- Keyboard > Keyboard Shortcuts > View and Customize Shortcuts >
         > System:
             - Lock screen: rebind to 'Pause' ('Pausa' button on keyboard)
         > Custom Shortcuts - Add (name | command | shortcut):
@@ -275,7 +282,7 @@ GNOME Settings:
             - Open Music Player | audacious | Super+M
 - Apps > Default Apps: make sure
     - either Audacious or Rhythmbox are set for Music, and
-    - set Photos to Image Viewer.
+    - Image Viewer is set for Photos.
 - Appearance: tune to your liking :) 
 
 Disks:
@@ -323,7 +330,14 @@ head $TODO_PATH
 echo '...'
 echo "Post-installation to-do list has been saved to $TODO_PATH."
 
-# Cleanup - Delete this script
+
+# Remove temporary file used for the scripts
+if [ ! sudo rm -f /temp_vars.sh ]; then
+    # clear
+    echo "Warning: temp_vars.sh could not be deleted."
+fi
+
+# Delete this script
 sudo rm -- "$0"
 
 exit 0
