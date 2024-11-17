@@ -17,17 +17,17 @@ source /temp_vars.sh
 # GRUB MULTI-OS BOOT CONFIGURATION
 
 # Enabling os-prober to detect other systems in GRUB:
-sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
+sudo sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
 
 # Run os-prober to detect other OSs
 clear
-if ! os-prober; then
+if ! sudo os-prober; then
   read -p "WARNING: os-prober did not detect any other operating systems."
 fi
 
 # Make grub config
 clear
-if ! grub-mkconfig -o /boot/grub/grub.cfg; then
+if ! sudo grub-mkconfig -o /boot/grub/grub.cfg; then
   echo "ERROR: Failed to generate GRUB configuration!"
   exit 1
 fi
@@ -60,15 +60,12 @@ clear
 # Install prerequisites for building AUR packages
 sudo pacman -S git --needed --noconfirm
 
-# Temporarily allow the current user to run sudo without a password for pacman commands (makepkg)
-echo "$USER ALL=(ALL) NOPASSWD: /usr/bin/pacman" | sudo tee -a /etc/sudoers.d/makepkg
-
 # Clone the yay repository
 git clone https://aur.archlinux.org/yay.git $HOME/yay
 
 # Navigate to the yay directory and install yay
 cd $HOME/yay
-makepkg -si --noconfirm
+sudo makepkg -si --noconfirm
 
 # Attempt to install visual studio code
 # if it can't be installed with yay, attempt with flatpak
@@ -84,10 +81,7 @@ git clone https://aur.archlinux.org/webcord-git.git $HOME/webcord-git
 
 # Navigate to the webcord directory and install it
 cd $HOME/webcord-git
-makepkg -si --noconfirm
-
-# Delete temporary sudoers file
-sudo rm -f /etc/sudoers.d/makepkg
+sudo makepkg -si --noconfirm
 
 
 
