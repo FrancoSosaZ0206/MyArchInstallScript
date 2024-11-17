@@ -76,6 +76,13 @@ fi
 # Go back to the home directory
 cd
 
+# Clone the webcord repository
+git clone https://aur.archlinux.org/webcord-git.git $HOME/webcord-git
+
+# Navigate to the webcord directory and install it
+cd $HOME/webcord-git
+makepkg -si --noconfirm
+
 
 
 # ############################################# #
@@ -92,7 +99,8 @@ if ! yay -S extra/hyprutils ml4w-hyprland --noconfirm; then
     clear
     read -p "WARNING: failed to download ML4W."
 else
-    read -p "ML4W downloaded successfully, proceeding with installation..."
+    echo "ML4W downloaded successfully, proceeding with installation..." &
+    sleep 3
     ml4w-hyprland-setup
 fi
 
@@ -347,7 +355,6 @@ Others:
 EOF
 
 # Notify the user
-# clear
 head $TODO_PATH
 echo '...'
 echo "Post-installation to-do list has been saved to $TODO_PATH."
@@ -355,12 +362,11 @@ echo "Post-installation to-do list has been saved to $TODO_PATH."
 
 # Remove temporary file used for the scripts
 if [ ! sudo rm -f /temp_vars.sh ]; then
-    # clear
     echo "Warning: temp_vars.sh could not be deleted."
 fi
 
 # Delete this script
-sudo rm -- "$0"
+sudo rm -f -- "$0"
 
 exit 0
 
