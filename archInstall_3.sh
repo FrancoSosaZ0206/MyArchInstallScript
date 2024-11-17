@@ -13,6 +13,28 @@ fi
 
 source /temp_vars.sh
 
+
+# GRUB MULTI-OS BOOT CONFIGURATION
+
+# Enabling os-prober to detect other systems in GRUB:
+sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
+
+# Run os-prober to detect other OSs
+clear
+if ! os-prober; then
+  read -p "WARNING: os-prober did not detect any other operating systems."
+fi
+
+# Make grub config
+clear
+if ! grub-mkconfig -o /boot/grub/grub.cfg; then
+  echo "ERROR: Failed to generate GRUB configuration!"
+  exit 1
+fi
+
+echo "GRUB configuration updated with detected OSs."
+
+
 # Turn Wi-Fi on (if not already)
 sudo nmcli radio wifi on
 
