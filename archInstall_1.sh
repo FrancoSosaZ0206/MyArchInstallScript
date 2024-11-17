@@ -237,4 +237,7 @@ chmod +x /mnt/archInstall_2.sh
 echo "Entering chroot environment..."
 arch-chroot /mnt /archInstall_2.sh
 
-# Continues in part 2!
+# After part 2:
+
+umount -R /mnt
+reboot
