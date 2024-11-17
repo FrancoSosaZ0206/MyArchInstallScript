@@ -244,3 +244,5 @@ arch-chroot /mnt /archInstall_2.sh || {
 
 umount -R /mnt
 reboot
+
+# Continues in part 3!
