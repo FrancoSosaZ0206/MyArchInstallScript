@@ -69,7 +69,7 @@ lvm2 \
 nvidia nvidia-utils nvidia-lts \
 networkmanager bluez blueman bluez-utils \
 dosfstools mtools os-prober sudo \
-gparted htop man neofetch ntfs-3g dconf-editor wget \
+gparted htop man fastfetch ntfs-3g dconf-editor wget \
 gnome gnome-tweaks gnome-themes-extra"
 
 # Perform the installation (enjoy!)
@@ -225,9 +225,17 @@ chown ${USERNAME}:${USERNAME} "${SCRIPT_DIR}"
 mv /temp_vars.sh "/home/${USERNAME}/"
 
 # Edit user's .bashrc to execute the third script when opening terminal
-echo 'if [ -f ~/archInstall_3.sh ]; then
+echo "if [ -f ~/archInstall_3.sh ]; then
     ~/archInstall_3.sh
-fi' >> "/home/${USERNAME}/.bashrc"
+fi
+
+# ···························· #
+# ${USERNAME}'s custom commands:
+
+fastfetch
+
+# ···························· #
+" >> "/home/${USERNAME}/.bashrc"
 
 
 # Print checkout message
