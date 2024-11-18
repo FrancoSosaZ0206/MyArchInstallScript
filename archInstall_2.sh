@@ -224,21 +224,27 @@ chown ${USERNAME}:${USERNAME} "${SCRIPT_DIR}"
 # Move temp_vars.sh to the user's home directory
 mv /temp_vars.sh "/home/${USERNAME}/"
 
-# Edit user's .bashrc to execute the third script when opening 
-echo << EOF > "/home/${USERNAME}/.bashrc"
-if [ -f ~/archInstall_3.sh ]; then
+# Edit user's .bashrc to execute the third script when opening terminal
+echo 'if [ -f ~/archInstall_3.sh ]; then
     ~/archInstall_3.sh
-fi
-EOF
+fi' >> "/home/${USERNAME}/.bashrc"
 
 
 # Print checkout message
 clear
-echo -e "\nInstallation complete!\n \
-The system will now reboot. After that,\n \
-Open the console program to perform\n \
-the post-installation sript.\n\n \
-Enjoy your new Arch Linux System! :)\n\n" &
+cat << EOF 
+---------------------------------------
+
+Installation complete!
+The system will now reboot. After that,
+Open the console program to perform
+the post-installation sript.
+
+Enjoy your new Arch Linux System! :)
+
+---------------------------------------
+
+EOF
 sleep 10
 
 # Cleanup - Delete this script
