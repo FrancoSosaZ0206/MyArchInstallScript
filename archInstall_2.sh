@@ -69,7 +69,7 @@ lvm2 \
 nvidia nvidia-utils nvidia-lts \
 networkmanager bluez blueman bluez-utils \
 dosfstools mtools os-prober sudo \
-gparted htop man neofetch ntfs-3g dconf-editor \
+gparted htop man neofetch ntfs-3g dconf-editor wget \
 gnome gnome-tweaks gnome-themes-extra"
 
 # Perform the installation (enjoy!)
@@ -169,7 +169,7 @@ echo 'Defaults insults' | EDITOR='tee -a' visudo
 
 # Temporarily grant passwordless sudo privileges to the user
 # (removed once the third script is done executing)
-echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/90-no-password
+echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" | EDITOR='tee -a' visudo
 
 
 # Enable GNOME greeter
@@ -212,46 +212,34 @@ flatpak install flathub $PACKAGES -y
 clear
 echo "Downloading the third part of the setup script..."
 
+SCRIPT_DIR="/home/${USERNAME}/archInstall_3.sh"
+
 # fetch the 3rd part of the script into the installation
-curl -o /archInstall_3.sh https://raw.githubusercontent.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_3.sh
-chmod +x /archInstall_3.sh
+curl -o "${SCRIPT_DIR}" https://raw.githubusercontent.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_3.sh
+# make the script executable
+chmod +x "${SCRIPT_DIR}"
+# grant execution permissions to the user
+chown ${USERNAME}:${USERNAME} "${SCRIPT_DIR}"
 
-# Create the systemd service to run it as the user automatically after rebooting
-echo "Creating systemd service to run archInstall_3.sh as user after reboot..."
-cat << EOF > /etc/systemd/system/run_thirdscript_after_reboot.service
-[Unit]
-Description=Run Arch post-installation script as user after reboot
-After=network.target
+# Move temp_vars.sh to the user's home directory
+mv /temp_vars.sh "/home/${USERNAME}/"
 
-[Service]
-Environment="HOME=/home/${USERNAME}"
-Type=oneshot
-User=${USERNAME}
-Group=${USERNAME}
-ExecStart=/bin/bash -c 'notify-send "Your post-installation setup is ready. Running the script now..." && /archInstall_3.sh'
-RemainAfterExit=true
-TimeoutSec=0
-
-[Install]
-WantedBy=multi-user.target
+# Edit user's .bashrc to execute the third script when opening 
+echo << EOF > "/home/${USERNAME}/.bashrc"
+if [ -f ~/archInstall_3.sh ]; then
+    ~/archInstall_3.sh
+fi
 EOF
-
-# Enable the service so it runs after reboot
-echo "Enabling the systemd service..."
-systemctl enable run_thirdscript_after_reboot.service &
-sleep 3
-
 
 
 # Print checkout message
 clear
-echo -e "\nInstallation complete! Run:\n\n \
-umount -R /mnt\n \
-reboot\n\n \
-After booting into the new system, Run:\n\n \
-archInstall_3.sh\n\n \
-to perform some post-installation tweaks.\n \
-Enjoy your new Arch Linux System! :)\n\n"
+echo -e "\nInstallation complete!\n \
+The system will now reboot. After that,\n \
+Open the console program to perform\n \
+the post-installation sript.\n\n \
+Enjoy your new Arch Linux System! :)\n\n" &
+sleep 10
 
 # Cleanup - Delete this script
 rm -- "$0"
