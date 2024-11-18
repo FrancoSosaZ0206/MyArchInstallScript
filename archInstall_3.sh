@@ -20,13 +20,11 @@ source /temp_vars.sh
 sudo sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
 
 # Run os-prober to detect other OSs
-clear
 if ! sudo os-prober; then
   read -p "WARNING: os-prober did not detect any other operating systems."
 fi
 
 # Make grub config
-clear
 if ! sudo grub-mkconfig -o /boot/grub/grub.cfg; then
   echo "ERROR: Failed to generate GRUB configuration!"
   exit 1
@@ -54,20 +52,29 @@ sudo mount --mkdir /dev/sda2 "${TB_MOUNTPOINT}"
 # ############################################# #
 # SECTION 15 - Special Packages Installation
 
+# ······································ #
+# Add the AUR repository (with yay):
+# ······································ #
 
 clear
-# Add the AUR REPOSITORY (with yay)
 # Install prerequisites for building AUR packages
 sudo pacman -S git --needed --noconfirm
+
+# Temporarily allow the current user to run sudo without a password for pacman commands (makepkg)
+echo "$USER ALL=(ALL) NOPASSWD: /usr/bin/pacman" | sudo tee -a /etc/sudoers.d/makepkg
 
 # Clone the yay repository
 git clone https://aur.archlinux.org/yay.git $HOME/yay
 
 # Navigate to the yay directory and install yay
 cd $HOME/yay
-sudo makepkg -si --noconfirm
+makepkg -si --noconfirm
 
-# Attempt to install visual studio code
+
+# ······································ #
+# Install VS Code:
+# ······································ #
+
 # if it can't be installed with yay, attempt with flatpak
 if ! yay -S visual-studio-code-bin --noconfirm; then
     sudo flatpak install flathub com.visualstudio.code -y
@@ -76,41 +83,104 @@ fi
 # Go back to the home directory
 cd
 
+
+# ······································ #
+# Install Webcord (better Discord client):
+# ······································ #
+
 # Clone the webcord repository
 git clone https://aur.archlinux.org/webcord-git.git $HOME/webcord-git
 
 # Navigate to the webcord directory and install it
 cd $HOME/webcord-git
-sudo makepkg -si --noconfirm
+makepkg -si --noconfirm
 
 
+# ······································ #
+# Install DroidCam (use your phone as webcam):
+# ······································ #
 
-# ############################################# #
-# SECTION 16 - Install and Configure Hyprland
-# and its Dependencies
+# Navigate to /tmp/
+cd /tmp/
+# Fetch the program compressed file
+curl -o droidcam_latest.zip https://files.dev47apps.net/linux/droidcam_2.1.3.zip
+# If it passes the integrity check (check this sha1sum key from website)
+if sha1sum droidcam_latest.zip | grep 2646edd5ad2cfb046c9c695fa6d564d33be0f38b; then
+    # then unzip the file
+    unzip droidcam_latest.zip -d droidcam
+    # navigate to the resulting folder
+    cd droidcam
+    # Install the program
+    sudo ./install-client
+    # Enable video by running this install script
+    sudo ./install-video
 
-# Install ML4W (setup for Hyprland)
-# This also installs Hyprland, so no need to worry about that.
-
-# Navigate to yay directory
-cd $HOME/yay
-# Attempt to download and install required utilities and ML4W
-if ! yay -S extra/hyprutils ml4w-hyprland --noconfirm; then
-    clear
-    read -p "WARNING: failed to download ML4W."
-else
-    echo "ML4W downloaded successfully, proceeding with installation..." &
-    sleep 3
-    ml4w-hyprland-setup
+else # if it didn't pass the integrity check,
+    # then remove the file
+    rm -f droidcam_latest.zip
+    # print a warning and move on
+    echo "WARNING: DroidCam didn't pass integrity check. Could not install it." &
+    sleep 2
 fi
 
-# Go back to the home directory
 cd
 
 
+# ······································ #
+# Install Bibata cursor themes:
+# ······································ #
+
+echo "Downloading Bibata cursor theme..."
+
+cd $HOME/yay
+
+if ! yay -S bibata-cursor-theme-bin --noconfirm; then    
+    echo "Failed downlading from yay. Attempting with tar version..."
+
+    # Define variables
+    BIBATA_URL="https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata.tar.xz"
+    TARGET_DIR="/usr/share/icons"
+    TEMP_DIR="/tmp/bibata_install"
+
+    # Create a temporary installation directory and navigate to it
+    if ! mkdir -p "$TEMP_DIR"; then
+        echo "ERROR: Failed to create temporary directory."
+    elif ! cd "$TEMP_DIR"; then
+        echo "ERROR: Failed to access temporary directory."
+    elif ! curl -LO "$BIBATA_URL"; then
+        echo "ERROR: Failed to download Bibata tar file from GitHub."
+    elif ! tar -xf Bibata.tar.xz; then
+        echo "ERROR: Failed to extract Bibata cursor theme."
+    elif ! sudo mv Bibata-* "$TARGET_DIR"; then
+        echo "ERROR: Failed to move Bibata cursor theme to $TARGET_DIR."
+    else
+        # Cleanup
+        rm -rf "$TEMP_DIR"
+
+        echo "Bibata cursor theme installed successfully to $TARGET_DIR." &
+    fi
+fi
+
+cd
+
+
+# ······································ #
+# Install Papirus icon themes:
+# ······································ #
+
+# Install for the root directory (recommended)
+if ! wget -qO- https://git.io/papirus-icon-theme-install | sh; then
+    echo "ERROR: Failed to install Papirus icon themes."
+elif [ ! -d "/usr/share/icons/Papirus" ]; then
+    echo "ERROR: Papirus installation completed, but they weren't found in /usr/share/icons."
+else
+    echo "Papirus icon themes installed successfully!"
+fi
+
+
 
 # ############################################# #
-# SECTION 17 - Configuration and Tweaks
+# SECTION 16 - Configuration and Tweaks
 
 apply_setting() {
     "$@"
@@ -221,12 +291,10 @@ else
         # open Audacious, if not already
         if ! pgrep -x "audacious" > /dev/null; then
             echo "Starting Audacious..."
-            audacious &
-            sleep 3 # Allow time for initialization
+            audacious & sleep 3 # Allow time for initialization
         fi
         echo "Closing Audacious..."
-        audacious -q
-        sleep 2 # Ensure proper shutdown
+        kill $(pgrep audacious) & sleep 2 # Ensure proper shutdown
     }
 
     MUSIC_LIB="${TB_MOUNTPOINT}/Franco/3. Música/1. Biblioteca de Música"
@@ -237,7 +305,7 @@ else
 
     # Update configuration
     echo "Configuring Audacious settings..."
-    cat << EOF > "/home/${USERNAME}/.config/audacious/config"
+    cat << EOF > "$HOME/.config/audacious/config"
 [audacious]
 replay_gain_mode=2
 replay_gain_preamp=-8
@@ -291,7 +359,7 @@ fi
 
 
 # ############################################# #
-# SECTION 18 - Cleanup and Debloat
+# SECTION 17 - Cleanup and Debloat
 
 # clear
 # Remove unnecessary gnome apps (for me)
@@ -308,11 +376,16 @@ sudo sh -c "echo 'NoDisplay=true' >> /usr/share/applications/org.gnome.Extension
 
 # Define the output file path
 TODO_PATH="$HOME/Documents/postInstall_todo.txt"
+TEMP_PATH="$TODO_PATH.tmp"
 
+# Ensure the directory exists
+if ! mkdir -p "$(dirname "$TODO_PATH")"; then
+    echo "ERROR: Could not create directory for TODO_PATH: $(dirname "$TODO_PATH")"
 # Create the file
-sudo touch "$TODO_PATH"
-# Write the instructions to the file using a heredoc
-sudo cat << EOF > "$TODO_PATH"
+elif ! touch "$TEMP_PATH"; then
+    echo "ERROR: Could not create file at $TEMP_PATH."
+else # Write the instructions to the file using a heredoc
+    cat << EOF > "$TEMP_PATH"
 Post-installation process complete.
 However, there are certain things that need
 to be done manually.
@@ -321,14 +394,15 @@ Here's the list:
 GNOME Settings:
 - System > Users: set user photo to one you like :) 
 - Keyboard > Keyboard Shortcuts > View and Customize Shortcuts >
-        > System:
-            - Lock screen: rebind to 'Pause' ('Pausa' button on keyboard)
-        > Custom Shortcuts - Add (name | command | shortcut):
-            - Power Off | gnome-session-quit --power-off | Super+P
-            - Reboot | gnome-session-quit --reboot | Super+R
-            - Log Out | gnome-session-quit --logout | Super+L
-            - Suspend | systemctl suspend | Super+S
-            - Open Music Player | audacious | Super+M
+    > System:
+        - Lock screen: rebind to 'Super+Pause' ('Pausa' button on spanish keyboard)
+    > Custom Shortcuts - Add:
+        NAME                      | COMMAND                           | SHORTCUT
+        Power Off                 | gnome-session-quit --power-off    | Super+P
+        Reboot                    | gnome-session-quit --reboot       | Super+R
+        Log Out                   | gnome-session-quit --logout       | Super+L
+        Suspend                   | systemctl suspend                 | Super+S
+        Open Music Player         | audacious                         | Super+M
 - Apps > Default Apps: make sure
     - either Audacious or Rhythmbox are set for Music, and
     - Image Viewer is set for Photos.
@@ -373,10 +447,15 @@ Others:
 - Apps menu: organize - group apps in folders.
 EOF
 
-# Notify the user
-head $TODO_PATH
-echo '...'
-echo "Post-installation to-do list has been saved to $TODO_PATH."
+    # Notify the user
+    if mv "$TEMP_PATH" "$TODO_PATH"; then
+        head -n 30 "$TODO_PATH"
+        echo '...'
+        echo "Post-installation to-do list has been saved to $TODO_PATH."
+    else
+        echo "ERROR: failed to save the to-do list."
+    fi
+fi
 
 
 # Remove temporary file used for the scripts
@@ -384,9 +463,22 @@ if [ ! -f /temp_vars.sh ]; then
     sudo rm -f /temp_vars.sh || echo "Warning: temp_vars.sh could not be deleted."
 fi
 
-# Delete this script
-sudo rm -f -- "$0"
+# Clean up the systemd service so it doesn't run again
+sudo rm -f /etc/systemd/system/run_thirdscript_after_reboot.service || echo "WARNING: third script's execution service couldn't be deleted!"
 
+# Delete this script
+sudo rm -f -- "$0" || echo "Warning: $0 couldn't be deleted."
+
+# Remove the passwordless sudo rule from sudoers
+echo "Restoring sudoers configuration..."
+# Check if sudo is available and remove the rule
+if command -v sudo &> /dev/null; then
+    sudo rm -f /etc/sudoers.d/90-no-password
+else
+    rm -f /etc/sudoers.d/90-no-password
+fi
+
+# Exit the script
 exit 0
 
 
