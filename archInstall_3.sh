@@ -433,6 +433,7 @@ Rhythmbox:
     > View > Check 'Play Queue in Side Pane'
     > Preferences >
         > General > Visible Columns: check
+            - Year
             - Last played
             - Play count
         > Playback > Player Backend: enable Crossfade and set its duration to 1 second.
