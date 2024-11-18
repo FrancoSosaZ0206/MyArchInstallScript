@@ -74,8 +74,8 @@ gnome gnome-tweaks gnome-themes-extra"
 
 # Perform the installation (enjoy!)
 if ! pacman -S ${PACKAGES} --noconfirm --needed; then
-  echo "Error installing packages. Exiting..."
-  exit 1
+    echo "Error installing packages. Exiting..."
+    exit 1
 fi
 echo "Needed system packages installed."
 
@@ -132,14 +132,14 @@ mount --mkdir "${SYS_DISK}1" /boot/EFI
 
 # Check if the partition was successfully mounted
 if ! mount | grep -q "/boot/EFI"; then
-  echo "ERROR: EFI partition couldn't be mounted!"
-  exit 1
+    echo "ERROR: EFI partition couldn't be mounted!"
+    exit 1
 fi
 
 # Install GRUB
 if ! grub-install --target=x86_64-efi --efi-directory=/boot/EFI --bootloader-id=Arch_btw --recheck; then
-  echo "ERROR: GRUB installation failed!"
-  exit 1
+    echo "ERROR: GRUB installation failed!"
+    exit 1
 fi
 
 # Copy grub locale file into our directory
@@ -147,23 +147,29 @@ cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 
 # Make grub config
 if ! grub-mkconfig -o /boot/grub/grub.cfg; then
-  echo "ERROR: Failed to generate GRUB configuration!"
-  exit 1
+    echo "ERROR: Failed to generate GRUB configuration!"
+    exit 1
 fi
 
 
+# ······································ #
 # SUDOERS CONFIGURATION:
+# ······································ #
 
 # Grant the newly created user sudo privileges
 echo '%wheel ALL=(ALL) ALL' | EDITOR='tee -a' visudo
 
 if grep '# %wheel ALL=(ALL) ALL' /etc/sudoers; then
-  echo "ERROR: couldn't grant sudo privileges to $USERNAME."
-  read -p "Press enter to continue..."
+    echo "ERROR: couldn't grant sudo privileges to $USERNAME."
+    read -p "Press enter to continue..."
 fi
 
 # (Easter Egg) Enable insults
 echo 'Defaults insults' | EDITOR='tee -a' visudo
+
+# Temporarily grant passwordless sudo privileges to the user
+# (removed once the third script is done executing)
+echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/90-no-password
 
 
 # Enable GNOME greeter
@@ -182,9 +188,10 @@ systemctl stop bluetooth
 PACKAGES="firefox \
 rhythmbox audacious \
 reaper easytag qjackctl \
-gimp krita obs-studio \
+gimp krita \
 nano vim libreoffice-fresh \
-yt-dlp"
+yt-dlp \
+android-tools cyme"
 if ! pacman -Syu ${PACKAGES} --noconfirm --needed; then
     clear
     echo "Error installing packages. Exiting..."
@@ -195,7 +202,9 @@ fi
 PACKAGES="com.mattjakeman.ExtensionManager \
 com.discordapp.Discord \
 org.gtk.Gtk3theme.Adwaita-dark \
-org.musicbrainz.Picard"
+org.musicbrainz.Picard \
+com.obsproject.Studio \
+com.obsproject.Studio.Plugin.DroidCam"
 flatpak install flathub $PACKAGES -y
 
 
@@ -207,9 +216,35 @@ echo "Downloading the third part of the setup script..."
 curl -o /archInstall_3.sh https://raw.githubusercontent.com/FrancoSosaZ0206/MyArchInstallScript/main/archInstall_3.sh
 chmod +x /archInstall_3.sh
 
+# Create the systemd service to run it as the user automatically after rebooting
+echo "Creating systemd service to run archInstall_3.sh as user after reboot..."
+cat << EOF > /etc/systemd/system/run_thirdscript_after_reboot.service
+[Unit]
+Description=Run Arch post-installation script as user after reboot
+After=network.target
 
-clear
+[Service]
+Environment="HOME=/home/${USERNAME}"
+Type=oneshot
+User=${USERNAME}
+Group=${USERNAME}
+ExecStart=/bin/bash -c 'notify-send "Your post-installation setup is ready. Running the script now..." && /archInstall_3.sh'
+RemainAfterExit=true
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable the service so it runs after reboot
+echo "Enabling the systemd service..."
+systemctl enable run_thirdscript_after_reboot.service &
+sleep 3
+
+
+
 # Print checkout message
+clear
 echo -e "\nInstallation complete! Run:\n\n \
 umount -R /mnt\n \
 reboot\n\n \
