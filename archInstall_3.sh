@@ -6,12 +6,12 @@
 
 # Import variables from part 1
 echo -e "\nImporting data...\n"
-if [ ! -f /temp_vars.sh ]; then
-    echo "Error: Data file /temp_vars.sh not found. Could not import data."
+if [ ! -f "$HOME/temp_vars.sh" ]; then
+    echo "Error: Data file $HOME/temp_vars.sh not found. Could not import data."
     exit 1
 fi
 
-source /temp_vars.sh
+source "$HOME/temp_vars.sh"
 
 
 # GRUB MULTI-OS BOOT CONFIGURATION
@@ -368,7 +368,6 @@ PACKAGES="gnome-contacts gnome-maps gnome-music \
         gnome-weather gnome-tour gnome-system-monitor \
         totem malcontent epiphany snapshot"
 sudo pacman -R $PACKAGES --noconfirm
-read -p "Press enter to continue..."
 
 # clear
 # Hide GNOME extensions
@@ -459,24 +458,14 @@ fi
 
 
 # Remove temporary file used for the scripts
-if [ ! -f /temp_vars.sh ]; then
-    sudo rm -f /temp_vars.sh || echo "Warning: temp_vars.sh could not be deleted."
-fi
-
-# Clean up the systemd service so it doesn't run again
-sudo rm -f /etc/systemd/system/run_thirdscript_after_reboot.service || echo "WARNING: third script's execution service couldn't be deleted!"
+sudo rm -f "$HOME/temp_vars.sh" || echo "Warning: temp_vars.sh could not be deleted."
 
 # Delete this script
 sudo rm -f -- "$0" || echo "Warning: $0 couldn't be deleted."
 
 # Remove the passwordless sudo rule from sudoers
 echo "Restoring sudoers configuration..."
-# Check if sudo is available and remove the rule
-if command -v sudo &> /dev/null; then
-    sudo rm -f /etc/sudoers.d/90-no-password
-else
-    rm -f /etc/sudoers.d/90-no-password
-fi
+# ...
 
 # Exit the script
 exit 0
