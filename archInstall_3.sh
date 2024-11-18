@@ -465,7 +465,11 @@ sudo rm -f -- "$0" || echo "Warning: $0 couldn't be deleted."
 
 # Remove the passwordless sudo rule from sudoers
 echo "Restoring sudoers configuration..."
-# ...
+sudo EDITOR='sed -i "/^${USERNAME} ALL=(ALL) NOPASSWD: ALL$/d"' visudo
+
+# Remove .bashrc modifications for script execution
+sed -i '/archInstall_3.sh/,/fi/d' "$HOME/.bashrc"
+cat "$HOME/.bashrc" & sleep 3
 
 # Exit the script
 exit 0
