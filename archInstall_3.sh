@@ -178,6 +178,50 @@ else
 fi
 
 
+# ······································ #
+# Install Cascadia Code custom font:
+# ······································ #
+
+# Set variables
+FONT_NAME="CascadiaCode"
+FONT_VERSION="latest"
+DOWNLOAD_URL="https://github.com/ryanoasis/nerd-fonts/releases/${FONT_VERSION}/download/${FONT_NAME}.zip"
+FONT_DIR="$HOME/.local/share/fonts/NerdFonts"
+
+# Create font directory if it doesn't exist
+mkdir -p "$FONT_DIR"
+
+# Download the font file
+echo "Downloading $FONT_NAME Nerd font..."
+curl -L "$DOWNLOAD_URL" -o "/tmp/${FONT_NAME}.zip"
+
+# Install the font
+if [[ $? -ne 0 ]]; then
+    echo "WARNING: Failed to donwload $FONT_NAME."
+else
+    # Extract the font files
+    echo "Extracting fonts..."
+    unzip -q "/tmp/${FONT_NAME}.zip" -d "$FONT_DIR"
+
+    if [[ $? -ne 0 ]]; then
+        echo "WARNING: Failed to extract fonts. Ensure 'unzip' is installed on your system."
+    else
+        # Clean up the zip file
+        rm "/tmp/${FONT_NAME}.zip"
+
+        # Refresh the font cache
+        echo "Refreshing font cache..."
+        fc-cache -fv "$FONT_DIR"
+
+        if [[ $? -eq 0 ]]; then
+            echo "$FONT_NAME Nerd Font installed successfully!"
+        else
+            echo "Font cache refresh failed. You may need to run 'fc-cache -fv' manually."
+        fi
+    fi
+fi
+
+
 
 # ############################################# #
 # SECTION 16 - Configuration and Tweaks
@@ -189,11 +233,46 @@ apply_setting() {
     fi
 }
 
+apply_gsetting() {
+    local schema="$1"
+    local key="$2"
+    local value="$3"
+
+    # Check if gsettings is available
+    if ! command -v gsettings &>/dev/null; then
+        echo "ERROR: gsettings is not installed or available in PATH."
+
+    # Check if schema exists
+    elif ! gsettings list-schemas | grep -q "^$schema$"; then
+        echo "WARNING: Schema '$schema' not found. Skipping."
+
+    # Check if key exists in the schema
+    elif ! gsettings get "$schema" "$key" &>/dev/null; then
+        echo "WARNING: Key '$key' not found in schema '$schema'. Skipping."
+
+    else # Apply the setting
+        apply_setting gsettings set "$schema" "$key" "$value"
+        return 0
+    fi
+
+    # Return a non-zero status in case of failure
+    return 1
+}
+
+# Check if tweaks exist first before enabling
+apply_gnome_extension() {
+    if gnome-extensions list | grep -q "$1"; then
+        apply_setting gnome-extensions enable "$1"
+    else
+        echo "Extension $1 not found. Skipping."
+    fi
+}
+
 # Enable autologin for the user
 sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=${USERNAME}" /etc/gdm/custom.conf
 
 # Set the GTK3 theme for legacy applications to Adwaita-dark
-apply_setting gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+apply_gsetting org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 
 # Add global aliases for yt-dlp commands
 echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' | sudo tee -a /etc/bash.bashrc > /dev/null
@@ -210,17 +289,17 @@ sleep 3
 # ······································ #
 
 # Set input language to Spanish and set as active:
-apply_setting gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
+apply_gsetting org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
 
 # Set formats region to Argentina
-apply_setting gsettings set org.gnome.system.locale region 'es_AR.UTF-8'
+apply_gsetting org.gnome.system.locale region 'es_AR.UTF-8'
 
 
 # Enable automatic Date & Time
 sudo timedatectl set-ntp true  # Enable Network Time Protocol (NTP)
 
 # Show Weekdays
-apply_setting gsettings set org.gnome.desktop.interface clock-show-weekday true
+apply_gsetting org.gnome.desktop.interface clock-show-weekday true
 
 # Set timezone to GMT-03 (Buenos Aires)
 apply_setting timedatectl set-timezone America/Argentina/Buenos_Aires
@@ -230,12 +309,12 @@ apply_setting timedatectl set-timezone America/Argentina/Buenos_Aires
 # Night Light configuration:
 
 # Enable from 18:00 to 10:00
-apply_setting gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
-apply_setting gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 18
-apply_setting gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 10
+apply_gsetting org.gnome.settings-daemon.plugins.color night-light-enabled true
+apply_gsetting org.gnome.settings-daemon.plugins.color night-light-schedule-from 18
+apply_gsetting org.gnome.settings-daemon.plugins.color night-light-schedule-to 10
 
 # Set temperature to 3500 (1/4th of the bar in GNOME Settings > Display > Night Light)
-apply_setting gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 3500
+apply_gsetting org.gnome.settings-daemon.plugins.color night-light-temperature 3500
 
 
 # Set audacious as default music player
@@ -249,34 +328,47 @@ apply_setting xdg-mime default org.gnome.Loupe.desktop image/jpeg
 # ······································ #
 
 # Enable maximize and minimize titlebar buttons
-apply_setting gsettings set org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
+apply_gsetting org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
 # Set Appearance > Style > Legacy Applications to 'Adwaita-dark'
-apply_setting gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+apply_gsetting org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 
 # Set cursor to Bibata-Modern-Ice
-apply_setting gsettings set org.gnome.desktop.interface cursor-theme 'Bibata-Modern-Ice'
+apply_gsetting org.gnome.desktop.interface cursor-theme 'Bibata-Modern-Ice'
 
 # Set icons to Papirus
-apply_setting gsettings set org.gnome.desktop.interface icon-theme 'Papirus'
+apply_gsetting org.gnome.desktop.interface icon-theme 'Papirus'
+
+# Set the font for GNOME Console
+apply_gsetting org.gnome.desktop.interface monospace-font-theme 'CaskaydiaCove Nerd Font Regular'
 
 
 # ······································ #
 # GNOME Extensions configuration:
 # ······································ #
 
-# Check if tweaks exist first before enabling
-apply_gnome_extension() {
-    if gnome-extensions list | grep -q "$1"; then
-        apply_setting gnome-extensions enable "$1"
-    else
-        echo "Extension $1 not found. Skipping."
-    fi
-}
-
 # Enable extensions
 apply_gnome_extension "launch-new-instance@gnome-shell-extensions.gcampax.github.com"
 apply_gnome_extension "light-style@gnome-shell-extensions.gcampax.github.com"
 apply_gnome_extension "user-theme@gnome-shell-extensions.gcampax.github.com"
+
+
+# ······································ #
+# GNOME Console configuration:
+# ······································ #
+
+# Set background transparency level (10-30 for subtle translucency)
+TRANSPARENCY=30
+
+echo "Setting GNOME Console transparency to $TRANSPARENCY%..."
+
+dconf write /org/gnome/Console/transparency $TRANSPARENCY
+
+# Verify changes
+if [[ $? -eq 0 ]]; then
+    echo "Transparency successfully configured in GNOME Console."
+else
+    echo "Failed to configure transparency in GNOME Console."
+fi
 
 
 # ······································ #
@@ -328,12 +420,23 @@ manual_length=1.5
 no_fade_in=TRUE
 
 [qtui]
+column_widths=25,55,427,277,44,267,175,25,100,41,59,275,275,275,75,275,175,75
 player_height=1011
-player_width=960
+player_width=1920
+playlist_columns=playing number artist title album length year queued
+playlist_headers_bold=TRUE
 
 [search-tool]
 monitor=TRUE
+path=${MUSIC_LIB}
 rescan_on_startup=TRUE
+
+[skins]
+skin=/usr/share/audacious/Skins/Default
+
+[skins-layout]
+lyrics-qt=13,32,288,192
+search-tool-qt=13,32,288,192
 EOF
     echo "Configuration file updated."
 

@@ -69,7 +69,7 @@ lvm2 \
 nvidia nvidia-utils nvidia-lts \
 networkmanager bluez blueman bluez-utils \
 dosfstools mtools os-prober sudo \
-gparted htop man fastfetch ntfs-3g dconf-editor wget \
+man ntfs-3g \
 gnome gnome-tweaks gnome-themes-extra"
 
 # Perform the installation (enjoy!)
@@ -178,11 +178,11 @@ systemctl enable gdm
 # Enable wifi
 systemctl enable NetworkManager
 
-# Enable bluetooth
+# Enable bluetooth, turn it on and off
 modprobe btusb
 systemctl enable bluetooth
-systemctl start bluetooth
-systemctl stop bluetooth
+rfkill toggle bluetooth & sleep 2
+rfkill toggle bluetooth
 
 # Install rest of the packages
 PACKAGES="firefox \
@@ -191,7 +191,9 @@ reaper easytag qjackctl \
 gimp krita \
 nano vim libreoffice-fresh \
 yt-dlp \
-android-tools cyme"
+android-tools cyme \
+fish kitty \
+gparted htop fastfetch dconf-editor wget"
 if ! pacman -Syu ${PACKAGES} --noconfirm --needed; then
     clear
     echo "Error installing packages. Exiting..."
