@@ -583,7 +583,7 @@ debloat_gnome() {
                     gnome-connections gnome-font-viewer evince sushi \
                     totem malcontent epiphany yelp snapshot"
 
-    if sudo pacman -Rns $PACKAGES --noconfirm; then
+    if sudo pacman -R $PACKAGES --noconfirm; then
         echo -e "\nGNOME successfully debloated!\n"
     else
         echo -e "\nWARNING: could not remove these GNOME packages:\n\n$PACKAGES\n\n"
