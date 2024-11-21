@@ -189,7 +189,7 @@ PACKAGES="firefox \
 rhythmbox audacious \
 reaper easytag qjackctl \
 gimp krita \
-nano vim libreoffice-fresh \
+vim libreoffice-fresh \
 yt-dlp \
 android-tools cyme \
 fish kitty \

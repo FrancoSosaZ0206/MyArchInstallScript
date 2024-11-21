@@ -353,6 +353,26 @@ apply_gnome_extension "user-theme@gnome-shell-extensions.gcampax.github.com"
 
 
 # ······································ #
+# GNOME Clocks configuration:
+# ······································ #
+
+apply_gsetting org.gnome.clocks world-clocks "[{'location': <(uint32 2, <('Buenos Aires', 'SADP', true, [(-0.60388392119003798, -1.0227629416686772)], [(-0.6036657550335387, -1.024028305376373)])>)>}]"
+
+# Check if GNOME Clocks is running
+if pgrep -x "gnome-clocks" > /dev/null; then
+    echo "GNOME Clocks is running. Restarting..."
+    pkill gnome-clocks
+fi
+
+# Start GNOME Clocks, wait for it to initialize, then close it
+gnome-clocks &
+sleep 2 # Adjust the delay if needed for the app to fully initialize
+pkill gnome-clocks
+
+echo "GNOME Clocks restarted and closed."
+
+
+# ······································ #
 # GNOME Console configuration:
 # ······································ #
 
@@ -468,9 +488,11 @@ fi
 # Remove unnecessary gnome apps (for me)
 echo -e "\nAttempting to remove unnecessary gnome apps...\n"
 PACKAGES="gnome-contacts gnome-maps gnome-music \
+        gnome-user-docs gnome-calendar gnome-text-editor \
         gnome-weather gnome-tour gnome-system-monitor \
-        totem malcontent epiphany snapshot"
-sudo pacman -R $PACKAGES --noconfirm
+        gnome-connections gnome-font-viewer evince sushi \
+        totem malcontent epiphany yelp snapshot"
+sudo pacman -Rns $PACKAGES --noconfirm
 
 # clear
 # Hide GNOME extensions
