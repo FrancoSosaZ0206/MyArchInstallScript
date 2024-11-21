@@ -591,7 +591,7 @@ debloat_gnome() {
 
     local GXT_PATH='/usr/share/applications/org.gnome.Extensions.desktop'
     local GXT_HIDE_PROPERTY='NoDisplay=true'
-    if ! grep -q "${GXT_HIDE_PROPERTY}" "${GXT_PATH}"
+    if ! grep -q "${GXT_HIDE_PROPERTY}" "${GXT_PATH}"; then
         # Hide GNOME extensions
         sudo sh -c "echo ${GXT_HIDE_PROPERTY} >> ${GXT_PATH}"
     fi
