@@ -189,9 +189,9 @@ bibata() {
         echo "Failed downlading from yay. Attempting with tar version..."
 
         # Define variables
-        BIBATA_URL="https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata.tar.xz"
-        TARGET_DIR="/usr/share/icons"
-        TEMP_DIR="/tmp/bibata_install"
+        local BIBATA_URL="https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata.tar.xz"
+        local TARGET_DIR="/usr/share/icons"
+        local TEMP_DIR="/tmp/bibata_install"
 
         # Create a temporary installation directory and navigate to it
         if ! mkdir -p "$TEMP_DIR"; then
@@ -447,7 +447,7 @@ gconsole_conf() {
     echo -e "\nConfiguring GNOME Console...\n"
 
     # Set background transparency level (10-30 for subtle translucency)
-    TRANSPARENCY=30
+    local TRANSPARENCY=30
 
     echo "Setting GNOME Console transparency to $TRANSPARENCY%..."
 
@@ -483,7 +483,7 @@ audacious_conf() {
             kill $(pgrep audacious) & sleep 2 # Ensure proper shutdown
         }
 
-        MUSIC_LIB="${TB_MOUNTPOINT}/Franco/3. Música/1. Biblioteca de Música"
+        local MUSIC_LIB="${TB_MOUNTPOINT}/Franco/3. Música/1. Biblioteca de Música"
 
         # Open and close Audacious to initialize files
         echo "Letting Audacious to initialize its files..."
@@ -672,7 +672,7 @@ Rhythmbox:
             > Plugins: enable 'ReplayGain', and in Preferences, set 'Pre-amp' to '-8,0 dB'.
 
 Others:
-    - Open Firefox and log into Mozilla, Google and GitHub (use phone and WhatsApp Web for this)
+    - Open Firefox and log into necessary accounts
     - Apps menu: organize - group apps in folders.
 EOF
 
@@ -687,20 +687,166 @@ EOF
     fi
 }
 
+rm_tmp_file() {
+    echo -e "\nDeleting temp_vars.sh...\n"
 
-# Remove temporary file used for the scripts
-sudo rm -f "$HOME/temp_vars.sh" || echo "Warning: temp_vars.sh could not be deleted."
+    # Remove temporary file used for the scripts
+    sudo rm -f "$HOME/temp_vars.sh" || echo "Warning: temp_vars.sh could not be deleted."
+}
 
-# Delete this script
-sudo rm -f -- "$0" || echo "Warning: $0 couldn't be deleted."
+rm_self() {
+    echo -e "\nDeleting this file...\n"
 
-# Remove the passwordless sudo rule from sudoers
-echo "Restoring sudoers configuration..."
-sudo EDITOR='sed -i "/^${USERNAME} ALL=(ALL) NOPASSWD: ALL$/d"' visudo
+    # Delete this script
+    sudo rm -f -- "$0" || echo "Warning: $0 couldn't be deleted."
+}
 
-# Remove .bashrc modifications for script execution
-sed -i '/archInstall_3.sh/,/fi/d' "$HOME/.bashrc"
-cat "$HOME/.bashrc" & sleep 3
+rm_sudo_paswordless() {
+    echo -e "\nRestoring sudoers configuration...\n"
+
+    # Remove the passwordless sudo rule from sudoers
+    sudo EDITOR='sed -i "/^${USERNAME} ALL=(ALL) NOPASSWD: ALL$/d"' visudo
+}
+
+rm_script_mods() {
+    echo -e "\nRemoving .bashrc modifications for executing this script...\n"
+
+    # Remove .bashrc modifications for script execution
+    sed -i '/archInstall_3.sh/,/fi/d' "$HOME/.bashrc"
+    cat "$HOME/.bashrc" & sleep 3
+}
+
+
+help() {
+    cat << EOF
+
+Usage: $0 [option]
+
+Options:
+    all | no option     Run the entire script (default)
+    grub                Updates GRUB to recognize other OS
+    wifi                Connects to wifi
+    disk                Mounts the 1TB disk
+    aur                 Sets up the AUR repository
+    install-pkgs        Installs:
+                            - VSCode
+                            - Webcord
+                            - DroidCam
+                            - Bibata cursor themes
+                            - Papirus icon themes
+                            - CascadiaCode console font
+    gnome-cfg           Configures GNOME:
+                            - Settings
+                            - Tweaks
+                            - Extensions
+                            - Console
+    audacious-cfg       Configures Audacious
+    misc-cfg            Currently, sets up global aliases for yt-dlp
+    gnome-debloat       Removes some unused GNOME packages (you can install them back if you want to)
+    finish              USE ONLY WHEN DONE WITH THIS SCRIPT
+
+    help                Display this message
+
+EOF
+}
+
+
+case "$1" in
+    all|"")
+        import_variables
+        grub_update
+        wifi_setup
+        mount_disk
+
+        aur_setup
+        vscode
+        webcord
+        droidcam
+        bibata
+        papirus
+        cascadia_font
+
+        gsettings_conf
+        gtweaks_conf
+        gxt_conf
+        gclocks_conf
+        gconsole_conf
+        audacious_conf
+        misc_conf
+
+        debloat_gnome
+        gen_todo
+        rm_tmp_file
+        rm_self
+        rm_sudo_paswordless
+        rm_script_mods
+        ;;
+
+    grub)
+        grub_update
+        ;;
+    wifi)
+        import_variables
+        wifi_setup
+        ;;
+    disk)
+        mount_disk
+        ;;
+    aur)
+        import_variables
+        wifi_setup
+        aur_setup
+        ;;
+    install-pkgs)
+        import_variables
+        wifi_setup
+
+        aur_setup
+
+        vscode
+        webcord
+        droidcam
+        bibata
+        papirus
+        cascadia_font
+        ;;
+    gnome-cfg)
+        import_variables
+
+        gsettings_conf
+        gtweaks_conf
+        gxt_conf
+        gclocks_conf
+        gconsole_conf
+        ;;
+    audacious-cfg)
+        mount_disk
+        audacious_conf
+        ;;
+    misc-cfg)
+        misc_conf
+        ;;
+    gnome-debloat)
+        debloat_gnome
+        ;;
+    finish)
+        gen_todo
+        rm_tmp_file
+        rm_self
+        rm_sudo_paswordless
+        rm_script_mods
+        ;;
+
+    help)
+        help
+        ;;
+    *)
+        echo -e "\nERROR: invalid option.\n"
+        ;;
+    
+esac
+
+
 
 # Exit the script
 exit 0
