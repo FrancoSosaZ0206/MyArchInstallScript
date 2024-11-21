@@ -2,50 +2,86 @@
 # Fran's Arch Linux Automated Installation Script (part 3)
 
 # ############################################# #
+#               GLOBAL VARIABLES
+# ############################################# #
+
+TB_MOUNTPOINT=""
+
+
+
+# ############################################# #
 # FIRST STEPS
 
+# ······································ #
 # Import variables from part 1
-echo -e "\nImporting data...\n"
-if [ ! -f "$HOME/temp_vars.sh" ]; then
-    echo "Error: Data file $HOME/temp_vars.sh not found. Could not import data."
+# ······································ #
+
+import_variables() {
+    echo -e "\nImporting data...\n"
+    if [ ! -f "$HOME/temp_vars.sh" ]; then
+        echo "Error: Data file $HOME/temp_vars.sh not found. Could not import data."
+        exit 1
+    fi
+
+    source "$HOME/temp_vars.sh"
+}
+
+
+# ······································ #
+# GRUB multi-os boot configuration:
+# ······································ #
+
+grub_update() {
+    echo -e "\nConfiguring GRUB...\n"
+    
+    # Enabling os-prober to detect other systems in GRUB:
+    sudo sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
+
+    # Run os-prober to detect other OSs
+    if ! sudo os-prober; then
+    read -p "WARNING: os-prober did not detect any other operating systems."
+    fi
+
+    # Make grub config
+    if ! sudo grub-mkconfig -o /boot/grub/grub.cfg; then
+    echo "ERROR: Failed to generate GRUB configuration!"
     exit 1
-fi
+    fi
 
-source "$HOME/temp_vars.sh"
-
-
-# GRUB MULTI-OS BOOT CONFIGURATION
-
-# Enabling os-prober to detect other systems in GRUB:
-sudo sed -i "s/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /etc/default/grub
-
-# Run os-prober to detect other OSs
-if ! sudo os-prober; then
-  read -p "WARNING: os-prober did not detect any other operating systems."
-fi
-
-# Make grub config
-if ! sudo grub-mkconfig -o /boot/grub/grub.cfg; then
-  echo "ERROR: Failed to generate GRUB configuration!"
-  exit 1
-fi
-
-echo "GRUB configuration updated with detected OSs."
+    echo "GRUB configuration updated with detected OSs."
+}
 
 
-# Turn Wi-Fi on (if not already)
-sudo nmcli radio wifi on
+# ······································ #
+# Wi-Fi setup:
+# ······································ #
 
-# Connect to Wi-Fi or exit if failed to do so
-sudo nmcli device wifi connect "${WIFI_SSID}" password "${WIFI_PASSWD}"
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to connect to Wi-Fi."
-  exit 1
-fi
+wifi_setup() {
+    echo -e "\nSetting up Wi-Fi...\n"
+    
+    # Turn Wi-Fi on (if not already)
+    sudo nmcli radio wifi on
 
-# Mount 1TB disk (used for Audacious config later on)
-TB_MOUNTPOINT="/mnt/1TB"
-sudo mount --mkdir /dev/sda2 "${TB_MOUNTPOINT}"
+    # Connect to Wi-Fi or exit if failed to do so
+    sudo nmcli device wifi connect "${WIFI_SSID}" password "${WIFI_PASSWD}"
+    if [ $? -ne 0 ]; then
+    echo "Error: Failed to connect to Wi-Fi."
+    exit 1
+    fi
+}
+
+
+# ······································ #
+# Disks Mounting:
+# ······································ #
+
+mount_disk() {
+    echo -e "\nMounting 1TB disk...\n"
+
+    # Mount 1TB disk (used for Audacious config later on)
+    TB_MOUNTPOINT="/mnt/1TB"
+    sudo mount --mkdir /dev/sda2 "${TB_MOUNTPOINT}"
+}
 
 
 
@@ -56,170 +92,194 @@ sudo mount --mkdir /dev/sda2 "${TB_MOUNTPOINT}"
 # Add the AUR repository (with yay):
 # ······································ #
 
-clear
-# Install prerequisites for building AUR packages
-sudo pacman -S git --needed --noconfirm
+aur_setup() {
+    clear
+    echo -e "\nAdding the AUR repository...\n"
 
-# Temporarily allow the current user to run sudo without a password for pacman commands (makepkg)
-echo "$USER ALL=(ALL) NOPASSWD: /usr/bin/pacman" | sudo tee -a /etc/sudoers.d/makepkg
+    # Install prerequisites for building AUR packages
+    sudo pacman -S git --needed --noconfirm
 
-# Clone the yay repository
-git clone https://aur.archlinux.org/yay.git $HOME/yay
+    # Clone the yay repository
+    git clone https://aur.archlinux.org/yay.git $HOME/yay
 
-# Navigate to the yay directory and install yay
-cd $HOME/yay
-makepkg -si --noconfirm
+    # Navigate to the yay directory and install yay
+    cd $HOME/yay && makepkg -si --noconfirm
+
+    cd
+}
 
 
 # ······································ #
 # Install VS Code:
 # ······································ #
 
-# if it can't be installed with yay, attempt with flatpak
-if ! yay -S visual-studio-code-bin --noconfirm; then
-    sudo flatpak install flathub com.visualstudio.code -y
-fi
+vscode() {
+    echo -e "\nInstalling Visual Studio Code...\n"
 
-# Go back to the home directory
-cd
+    # if it can't be installed with yay, attempt with flatpak
+    if ! yay -S visual-studio-code-bin --noconfirm; then
+        sudo flatpak install flathub com.visualstudio.code -y
+    fi
+
+    cd
+}
 
 
 # ······································ #
 # Install Webcord (better Discord client):
 # ······································ #
 
-# Clone the webcord repository
-git clone https://aur.archlinux.org/webcord-git.git $HOME/webcord-git
+webcord() {
+    echo -e "\nInstalling WebCord...\n"
 
-# Navigate to the webcord directory and install it
-cd $HOME/webcord-git
-makepkg -si --noconfirm
+    # Clone the webcord repository
+    git clone https://aur.archlinux.org/webcord-git.git $HOME/webcord-git
+
+    # Navigate to the webcord directory and install it
+    cd $HOME/webcord-git && makepkg -si --noconfirm
+
+    cd
+}
 
 
 # ······································ #
 # Install DroidCam (use your phone as webcam):
 # ······································ #
 
-# Navigate to /tmp/
-cd /tmp/
-# Fetch the program compressed file
-curl -o droidcam_latest.zip https://files.dev47apps.net/linux/droidcam_2.1.3.zip
-# If it passes the integrity check (check this sha1sum key from website)
-if sha1sum droidcam_latest.zip | grep 2646edd5ad2cfb046c9c695fa6d564d33be0f38b; then
-    # then unzip the file
-    unzip droidcam_latest.zip -d droidcam
-    # navigate to the resulting folder
-    cd droidcam
-    # Install the program
-    sudo ./install-client
-    # Enable video by running this install script
-    sudo ./install-video
+droidcam() {
+    echo -e "\nInstalling DroidCam...\n"
 
-else # if it didn't pass the integrity check,
-    # then remove the file
-    rm -f droidcam_latest.zip
-    # print a warning and move on
-    echo "WARNING: DroidCam didn't pass integrity check. Could not install it." &
-    sleep 2
-fi
+    # Navigate to /tmp/
+    cd /tmp/
+    # Fetch the program compressed file
+    curl -o droidcam_latest.zip https://files.dev47apps.net/linux/droidcam_2.1.3.zip
+    # If it passes the integrity check (check this sha1sum key from website)
+    if sha1sum droidcam_latest.zip | grep -q 2646edd5ad2cfb046c9c695fa6d564d33be0f38b; then
+        # then unzip the file
+        unzip droidcam_latest.zip -d droidcam
+        # navigate to the resulting folder
+        cd droidcam
+        # Install the program
+        sudo ./install-client
+        # Enable video by running this install script
+        sudo ./install-video
 
-cd
+    else # if it didn't pass the integrity check,
+        # then remove the file
+        rm -f droidcam_latest.zip
+        # print a warning and move on
+        echo "WARNING: DroidCam didn't pass integrity check. Could not install it." &
+        sleep 2
+    fi
+
+    cd
+}
 
 
 # ······································ #
 # Install Bibata cursor themes:
 # ······································ #
 
-echo "Downloading Bibata cursor theme..."
+bibata() {
+    echo -e "\nInstalling Bibata cursor themes...\n"
 
-cd $HOME/yay
+    cd $HOME/yay
 
-if ! yay -S bibata-cursor-theme-bin --noconfirm; then    
-    echo "Failed downlading from yay. Attempting with tar version..."
+    if ! yay -S bibata-cursor-theme-bin --noconfirm; then    
+        echo "Failed downlading from yay. Attempting with tar version..."
 
-    # Define variables
-    BIBATA_URL="https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata.tar.xz"
-    TARGET_DIR="/usr/share/icons"
-    TEMP_DIR="/tmp/bibata_install"
+        # Define variables
+        BIBATA_URL="https://github.com/ful1e5/Bibata_Cursor/releases/latest/download/Bibata.tar.xz"
+        TARGET_DIR="/usr/share/icons"
+        TEMP_DIR="/tmp/bibata_install"
 
-    # Create a temporary installation directory and navigate to it
-    if ! mkdir -p "$TEMP_DIR"; then
-        echo "ERROR: Failed to create temporary directory."
-    elif ! cd "$TEMP_DIR"; then
-        echo "ERROR: Failed to access temporary directory."
-    elif ! curl -LO "$BIBATA_URL"; then
-        echo "ERROR: Failed to download Bibata tar file from GitHub."
-    elif ! tar -xf Bibata.tar.xz; then
-        echo "ERROR: Failed to extract Bibata cursor theme."
-    elif ! sudo mv Bibata-* "$TARGET_DIR"; then
-        echo "ERROR: Failed to move Bibata cursor theme to $TARGET_DIR."
-    else
-        # Cleanup
-        rm -rf "$TEMP_DIR"
+        # Create a temporary installation directory and navigate to it
+        if ! mkdir -p "$TEMP_DIR"; then
+            echo "ERROR: Failed to create temporary directory."
+        elif ! cd "$TEMP_DIR"; then
+            echo "ERROR: Failed to access temporary directory."
+        elif ! curl -LO "$BIBATA_URL"; then
+            echo "ERROR: Failed to download Bibata tar file from GitHub."
+        elif ! tar -xf Bibata.tar.xz; then
+            echo "ERROR: Failed to extract Bibata cursor theme."
+        elif ! sudo mv Bibata-* "$TARGET_DIR"; then
+            echo "ERROR: Failed to move Bibata cursor theme to $TARGET_DIR."
+        else
+            # Cleanup
+            rm -rf "$TEMP_DIR"
 
-        echo "Bibata cursor theme installed successfully to $TARGET_DIR." &
+            echo "Bibata cursor theme installed successfully to $TARGET_DIR." &
+        fi
     fi
-fi
 
-cd
+    cd
+}
 
 
 # ······································ #
 # Install Papirus icon themes:
 # ······································ #
 
-# Install for the root directory (recommended)
-if ! wget -qO- https://git.io/papirus-icon-theme-install | sh; then
-    echo "ERROR: Failed to install Papirus icon themes."
-elif [ ! -d "/usr/share/icons/Papirus" ]; then
-    echo "ERROR: Papirus installation completed, but they weren't found in /usr/share/icons."
-else
-    echo "Papirus icon themes installed successfully!"
-fi
+papirus() {
+    echo -e "\nInstalling Papirus icon themes...\n"
+
+    # Install for the root directory (recommended)
+    if ! wget -qO- https://git.io/papirus-icon-theme-install | sh; then
+        echo "ERROR: Failed to install Papirus icon themes."
+    elif [ ! -d "/usr/share/icons/Papirus" ]; then
+        echo "ERROR: Papirus installation completed, but they weren't found in /usr/share/icons."
+    else
+        echo "Papirus icon themes installed successfully!"
+    fi
+}
 
 
 # ······································ #
 # Install Cascadia Code custom font:
 # ······································ #
 
-# Set variables
-FONT_NAME="CascadiaCode"
-FONT_VERSION="latest"
-DOWNLOAD_URL="https://github.com/ryanoasis/nerd-fonts/releases/${FONT_VERSION}/download/${FONT_NAME}.zip"
-FONT_DIR="$HOME/.local/share/fonts/NerdFonts"
+cascadia_font() {
+    echo -e "\nInstalling Cascadia Code custom font...\n"
 
-# Create font directory if it doesn't exist
-mkdir -p "$FONT_DIR"
+    # Set variables
+    local FONT_NAME="CascadiaCode"
+    local FONT_VERSION="latest"
+    local DOWNLOAD_URL="https://github.com/ryanoasis/nerd-fonts/releases/${FONT_VERSION}/download/${FONT_NAME}.zip"
+    local FONT_DIR="$HOME/.local/share/fonts/NerdFonts"
 
-# Download the font file
-echo "Downloading $FONT_NAME Nerd font..."
-curl -L "$DOWNLOAD_URL" -o "/tmp/${FONT_NAME}.zip"
+    # Create font directory if it doesn't exist
+    mkdir -p "$FONT_DIR"
 
-# Install the font
-if [[ $? -ne 0 ]]; then
-    echo "WARNING: Failed to donwload $FONT_NAME."
-else
-    # Extract the font files
-    echo "Extracting fonts..."
-    unzip -q "/tmp/${FONT_NAME}.zip" -d "$FONT_DIR"
+    # Download the font file
+    echo "Downloading $FONT_NAME Nerd font..."
+    curl -L "$DOWNLOAD_URL" -o "/tmp/${FONT_NAME}.zip"
 
+    # Install the font
     if [[ $? -ne 0 ]]; then
-        echo "WARNING: Failed to extract fonts. Ensure 'unzip' is installed on your system."
+        echo "WARNING: Failed to donwload $FONT_NAME."
     else
-        # Clean up the zip file
-        rm "/tmp/${FONT_NAME}.zip"
+        # Extract the font files
+        echo "Extracting fonts..."
+        unzip -q "/tmp/${FONT_NAME}.zip" -d "$FONT_DIR"
 
-        # Refresh the font cache
-        echo "Refreshing font cache..."
-        fc-cache -fv "$FONT_DIR"
-
-        if [[ $? -eq 0 ]]; then
-            echo "$FONT_NAME Nerd Font installed successfully!"
+        if [[ $? -ne 0 ]]; then
+            echo "WARNING: Failed to extract fonts. Ensure 'unzip' is installed on your system."
         else
-            echo "Font cache refresh failed. You may need to run 'fc-cache -fv' manually."
+            # Clean up the zip file
+            rm "/tmp/${FONT_NAME}.zip"
+
+            # Refresh the font cache
+            echo "Refreshing font cache..."
+            fc-cache -fv "$FONT_DIR"
+
+            if [[ $? -eq 0 ]]; then
+                echo "$FONT_NAME Nerd Font installed successfully!"
+            else
+                echo "Font cache refresh failed. You may need to run 'fc-cache -fv' manually."
+            fi
         fi
     fi
-fi
+}
 
 
 
@@ -268,156 +328,170 @@ apply_gnome_extension() {
     fi
 }
 
-# Enable autologin for the user
-sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=${USERNAME}" /etc/gdm/custom.conf
-
-# Set the GTK3 theme for legacy applications to Adwaita-dark
-apply_gsetting org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
-
-# Add global aliases for yt-dlp commands
-echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' | sudo tee -a /etc/bash.bashrc > /dev/null
-echo 'alias getMusicWithMetadata="yt-dlp -x --audio-format mp3 --audio-quality 0 -P ~/Music"' | sudo tee -a /etc/bash.bashrc > /dev/null
-echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' | sudo tee -a /etc/bash.bashrc > /dev/null
-
-tail /etc/bash.bashrc
-echo "yt-dlp aliases set..." &
-sleep 3
-
 
 # ······································ #
 # GNOME Settings configuration:
 # ······································ #
 
-# Set input language to Spanish and set as active:
-apply_gsetting org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
-
-# Set formats region to Argentina
-apply_gsetting org.gnome.system.locale region 'es_AR.UTF-8'
-
-
-# Enable automatic Date & Time
-sudo timedatectl set-ntp true  # Enable Network Time Protocol (NTP)
-
-# Show Weekdays
-apply_gsetting org.gnome.desktop.interface clock-show-weekday true
-
-# Set timezone to GMT-03 (Buenos Aires)
-apply_setting timedatectl set-timezone America/Argentina/Buenos_Aires
+gsettings_conf() {
+    echo -e "\nConfiguring GNOME Settings...\n"
+    
+    # Enable autologin for the user
+    sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=${USERNAME}" /etc/gdm/custom.conf
 
 
+    # Set input language to Spanish and set as active:
+    apply_gsetting org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
 
-# Night Light configuration:
-
-# Enable from 18:00 to 10:00
-apply_gsetting org.gnome.settings-daemon.plugins.color night-light-enabled true
-apply_gsetting org.gnome.settings-daemon.plugins.color night-light-schedule-from 18
-apply_gsetting org.gnome.settings-daemon.plugins.color night-light-schedule-to 10
-
-# Set temperature to 3500 (1/4th of the bar in GNOME Settings > Display > Night Light)
-apply_gsetting org.gnome.settings-daemon.plugins.color night-light-temperature 3500
+    # Set formats region to Argentina
+    apply_gsetting org.gnome.system.locale region 'es_AR.UTF-8'
 
 
-# Set audacious as default music player
-apply_setting xdg-mime default audacious.desktop audio/mpeg
-# Set Image Viewer as default photos app
-apply_setting xdg-mime default org.gnome.Loupe.desktop image/jpeg
+    # Enable automatic Date & Time
+    sudo timedatectl set-ntp true  # Enable Network Time Protocol (NTP)
+
+    # Show Weekdays
+    apply_gsetting org.gnome.desktop.interface clock-show-weekday true
+
+    # Set timezone to GMT-03 (Buenos Aires)
+    apply_setting timedatectl set-timezone America/Argentina/Buenos_Aires
+
+
+    # Night Light configuration:
+
+    # Enable from 18:00 to 10:00
+    apply_gsetting org.gnome.settings-daemon.plugins.color night-light-enabled true
+    apply_gsetting org.gnome.settings-daemon.plugins.color night-light-schedule-from 18
+    apply_gsetting org.gnome.settings-daemon.plugins.color night-light-schedule-to 10
+
+    # Set temperature to 3500 (1/4th of the bar in GNOME Settings > Display > Night Light)
+    apply_gsetting org.gnome.settings-daemon.plugins.color night-light-temperature 3500
+
+
+    # Set audacious as default music player
+    apply_setting xdg-mime default audacious.desktop audio/mpeg
+    # Set Image Viewer as default photos app
+    apply_setting xdg-mime default org.gnome.Loupe.desktop image/jpeg
+}
 
 
 # ······································ #
 # GNOME Tweaks configuration:
 # ······································ #
 
-# Enable maximize and minimize titlebar buttons
-apply_gsetting org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
-# Set Appearance > Style > Legacy Applications to 'Adwaita-dark'
-apply_gsetting org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
+gtweaks_conf() {
+    echo -e "\nConfiguring GNOME Tweaks...\n"
 
-# Set cursor to Bibata-Modern-Ice
-apply_gsetting org.gnome.desktop.interface cursor-theme 'Bibata-Modern-Ice'
+    # Set the GTK3 theme for legacy applications to Adwaita-dark
+    apply_gsetting org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 
-# Set icons to Papirus
-apply_gsetting org.gnome.desktop.interface icon-theme 'Papirus'
+    # Enable maximize and minimize titlebar buttons
+    apply_gsetting org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
+    # Set Appearance > Style > Legacy Applications to 'Adwaita-dark'
+    apply_gsetting org.gnome.desktop.interface gtk-theme 'Adwaita-dark'
 
-# Set the font for GNOME Console
-apply_gsetting org.gnome.desktop.interface monospace-font-theme 'CaskaydiaCove Nerd Font Regular'
+    # Set cursor to Bibata-Modern-Ice
+    apply_gsetting org.gnome.desktop.interface cursor-theme 'Bibata-Modern-Ice'
+
+    # Set icons to Papirus
+    apply_gsetting org.gnome.desktop.interface icon-theme 'Papirus'
+
+    # Set the font for GNOME Console
+    apply_gsetting org.gnome.desktop.interface monospace-font-theme 'CaskaydiaCove Nerd Font Regular'
+}
 
 
 # ······································ #
 # GNOME Extensions configuration:
 # ······································ #
 
-# Enable extensions
-apply_gnome_extension "launch-new-instance@gnome-shell-extensions.gcampax.github.com"
-apply_gnome_extension "light-style@gnome-shell-extensions.gcampax.github.com"
-apply_gnome_extension "user-theme@gnome-shell-extensions.gcampax.github.com"
+gxt_conf() {
+    echo -e "\nConfiguring GNOME Extensions...\n"
+
+    # Enable extensions
+    apply_gnome_extension "launch-new-instance@gnome-shell-extensions.gcampax.github.com"
+    apply_gnome_extension "light-style@gnome-shell-extensions.gcampax.github.com"
+    apply_gnome_extension "user-theme@gnome-shell-extensions.gcampax.github.com"
+}
 
 
 # ······································ #
 # GNOME Clocks configuration:
 # ······································ #
 
-apply_gsetting org.gnome.clocks world-clocks "[{'location': <(uint32 2, <('Buenos Aires', 'SADP', true, [(-0.60388392119003798, -1.0227629416686772)], [(-0.6036657550335387, -1.024028305376373)])>)>}]"
+gclocks_conf() {
+    echo -e "\nConfiguring GNOME Clocks...\n"
 
-# Check if GNOME Clocks is running
-if pgrep -x "gnome-clocks" > /dev/null; then
-    echo "GNOME Clocks is running. Restarting..."
+    apply_gsetting org.gnome.clocks world-clocks "[{'location': <(uint32 2, <('Buenos Aires', 'SADP', true, [(-0.60388392119003798, -1.0227629416686772)], [(-0.6036657550335387, -1.024028305376373)])>)>}]"
+
+    # Check if GNOME Clocks is running
+    if pgrep -x "gnome-clocks" > /dev/null; then
+        echo "GNOME Clocks is running. Restarting..."
+        pkill gnome-clocks
+    fi
+
+    # Start GNOME Clocks, wait for it to initialize, then close it
+    gnome-clocks &
+    sleep 2 # Adjust the delay if needed for the app to fully initialize
     pkill gnome-clocks
-fi
 
-# Start GNOME Clocks, wait for it to initialize, then close it
-gnome-clocks &
-sleep 2 # Adjust the delay if needed for the app to fully initialize
-pkill gnome-clocks
-
-echo "GNOME Clocks restarted and closed."
+    echo "GNOME Clocks restarted and closed."
+}
 
 
 # ······································ #
 # GNOME Console configuration:
 # ······································ #
 
-# Set background transparency level (10-30 for subtle translucency)
-TRANSPARENCY=30
+gconsole_conf() {
+    echo -e "\nConfiguring GNOME Console...\n"
 
-echo "Setting GNOME Console transparency to $TRANSPARENCY%..."
+    # Set background transparency level (10-30 for subtle translucency)
+    TRANSPARENCY=30
 
-dconf write /org/gnome/Console/transparency $TRANSPARENCY
+    echo "Setting GNOME Console transparency to $TRANSPARENCY%..."
 
-# Verify changes
-if [[ $? -eq 0 ]]; then
-    echo "Transparency successfully configured in GNOME Console."
-else
-    echo "Failed to configure transparency in GNOME Console."
-fi
+    dconf write /org/gnome/Console/transparency $TRANSPARENCY
+
+    # Verify changes
+    if [[ $? -eq 0 ]]; then
+        echo "Transparency successfully configured in GNOME Console."
+    else
+        echo "Failed to configure transparency in GNOME Console."
+    fi
+}
 
 
 # ······································ #
 # Audacious configuration:
 # ······································ #
 
-# If audacious is installed, proceed
-if ! command -v audacious &>/dev/null; then
-    echo "Audacious is not installed. Skipping configuration."
-else
-    open_close_audacious() {
-        # open Audacious, if not already
-        if ! pgrep -x "audacious" > /dev/null; then
-            echo "Starting Audacious..."
-            audacious & sleep 3 # Allow time for initialization
-        fi
-        echo "Closing Audacious..."
-        kill $(pgrep audacious) & sleep 2 # Ensure proper shutdown
-    }
+audacious_conf() {
+    echo -e "\nConfiguring Audacious...\n"
 
-    MUSIC_LIB="${TB_MOUNTPOINT}/Franco/3. Música/1. Biblioteca de Música"
+    # If audacious is installed, proceed
+    if ! command -v audacious &>/dev/null; then
+        echo "Audacious is not installed. Skipping configuration."
+    else
+        open_close_audacious() {
+            # open Audacious, if not already
+            if ! pgrep -x "audacious" > /dev/null; then
+                echo "Starting Audacious..."
+                audacious & sleep 3 # Allow time for initialization
+            fi
+            echo "Closing Audacious..."
+            kill $(pgrep audacious) & sleep 2 # Ensure proper shutdown
+        }
 
-    # Open and close Audacious to initialize files
-    echo "Letting Audacious to initialize its files..."
-    open_close_audacious
+        MUSIC_LIB="${TB_MOUNTPOINT}/Franco/3. Música/1. Biblioteca de Música"
 
-    # Update configuration
-    echo "Configuring Audacious settings..."
-    cat << EOF > "$HOME/.config/audacious/config"
+        # Open and close Audacious to initialize files
+        echo "Letting Audacious to initialize its files..."
+        open_close_audacious
+
+        # Update configuration
+        echo "Configuring Audacious settings..."
+        cat << EOF > "$HOME/.config/audacious/config"
 [audacious]
 replay_gain_mode=2
 replay_gain_preamp=-8
@@ -458,79 +532,109 @@ skin=/usr/share/audacious/Skins/Default
 lyrics-qt=13,32,288,192
 search-tool-qt=13,32,288,192
 EOF
-    echo "Configuration file updated."
+        echo "Configuration file updated."
 
-    # Update playlist directory
-    if [ -d "$MUSIC_LIB" ]; then
-        audtool playlist-clear
-        audtool playlist-addurl "$MUSIC_LIB"
-        echo "Playlist updated with music from $MUSIC_LIB"
-    else
-        echo "Playlist directory does not exist: $MUSIC_LIB"
+        # Update playlist directory
+        if [ -d "$MUSIC_LIB" ]; then
+            audtool playlist-clear
+            audtool playlist-addurl "$MUSIC_LIB"
+            echo "Playlist updated with music from $MUSIC_LIB"
+        else
+            echo "Playlist directory does not exist: $MUSIC_LIB"
+        fi
+
+        # Restart Audacious to finalize configuration
+        echo "Restarting Audacious..."
+        open_close_audacious
+
+        echo "Configuration completed!"
     fi
-
-    # Restart Audacious to finalize configuration
-    echo "Restarting Audacious..."
-    open_close_audacious
+}
 
 
-    echo "Configuration completed!"
-fi
+# ······································ #
+# Other configurations:
+# ······································ #
 
+misc_conf() {
+    echo -e "\nConfiguring miscellaneous things...\n"
 
+    # Add global aliases for yt-dlp commands
+    echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' | sudo tee -a /etc/bash.bashrc > /dev/null
+    echo 'alias getMusicWithMetadata="yt-dlp -x --audio-format mp3 --audio-quality 0 -P ~/Music"' | sudo tee -a /etc/bash.bashrc > /dev/null
+    echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' | sudo tee -a /etc/bash.bashrc > /dev/null
+
+    echo -e "\nyt-dlp aliases set...\n"
+}
 
 
 
 # ############################################# #
 # SECTION 17 - Cleanup and Debloat
 
-# clear
-# Remove unnecessary gnome apps (for me)
-echo -e "\nAttempting to remove unnecessary gnome apps...\n"
-PACKAGES="gnome-contacts gnome-maps gnome-music \
-        gnome-user-docs gnome-calendar gnome-text-editor \
-        gnome-weather gnome-tour gnome-system-monitor \
-        gnome-connections gnome-font-viewer evince sushi \
-        totem malcontent epiphany yelp snapshot"
-sudo pacman -Rns $PACKAGES --noconfirm
+debloat_gnome() {
+    clear
+    echo -e "\nDebloating GNOME...\n"
 
-# clear
-# Hide GNOME extensions
-sudo sh -c "echo 'NoDisplay=true' >> /usr/share/applications/org.gnome.Extensions.desktop"
+    # Remove unnecessary gnome apps (for me)
+    local PACKAGES="gnome-contacts gnome-maps gnome-music \
+                    gnome-user-docs gnome-calendar gnome-text-editor \
+                    gnome-weather gnome-tour gnome-system-monitor \
+                    gnome-connections gnome-font-viewer evince sushi \
+                    totem malcontent epiphany yelp snapshot"
 
-# Define the output file path
-TODO_PATH="$HOME/Documents/postInstall_todo.txt"
-TEMP_PATH="$TODO_PATH.tmp"
+    if sudo pacman -Rns $PACKAGES --noconfirm; then
+        echo -e "\nGNOME successfully debloated!\n"
+    else
+        echo -e "\nWARNING: could not remove these GNOME packages:\n\n$PACKAGES\n\n"
+    fi
 
-# Ensure the directory exists
-if ! mkdir -p "$(dirname "$TODO_PATH")"; then
-    echo "ERROR: Could not create directory for TODO_PATH: $(dirname "$TODO_PATH")"
-# Create the file
-elif ! touch "$TEMP_PATH"; then
-    echo "ERROR: Could not create file at $TEMP_PATH."
-else # Write the instructions to the file using a heredoc
-    cat << EOF > "$TEMP_PATH"
+    local GXT_PATH='/usr/share/applications/org.gnome.Extensions.desktop'
+    local GXT_HIDE_PROPERTY='NoDisplay=true'
+    if ! grep -q "${GXT_HIDE_PROPERTY}" "${GXT_PATH}"
+        # Hide GNOME extensions
+        sudo sh -c "echo ${GXT_HIDE_PROPERTY} >> ${GXT_PATH}"
+    fi
+}
+
+gen_todo() {
+    echo -e "\nGenerating to-do list...\n"
+
+    # Define the output file path
+    local TODO_PATH="$HOME/Documents/postInstall_todo.txt"
+    local TEMP_PATH="$TODO_PATH.tmp"
+
+    # Ensure the directory exists
+    if ! mkdir -p "$(dirname "$TODO_PATH")"; then
+        echo "ERROR: Could not create directory for TODO_PATH: $(dirname "$TODO_PATH")"
+
+    # Create the file
+    elif ! touch "$TEMP_PATH"; then
+        echo "ERROR: Could not create file at $TEMP_PATH."
+
+    else # Write the instructions to the file using a heredoc
+        cat << EOF > "$TEMP_PATH"
 Post-installation process complete.
 However, there are certain things that need
 to be done manually.
 Here's the list:
 
 GNOME Settings:
-- System > Users: set user photo to one you like :) 
-- Keyboard > Keyboard Shortcuts > View and Customize Shortcuts >
-    > System:
-        - Lock screen: rebind to 'Super+Pause' ('Pausa' button on spanish keyboard)
-    > Custom Shortcuts - Add:
-        NAME                      | COMMAND                           | SHORTCUT
-        Power Off                 | gnome-session-quit --power-off    | Super+P
-        Reboot                    | gnome-session-quit --reboot       | Super+R
-        Log Out                   | gnome-session-quit --logout       | Super+L
-        Suspend                   | systemctl suspend                 | Super+S
-        Open Music Player         | audacious                         | Super+M
-- Apps > Default Apps: make sure
-    - either Audacious or Rhythmbox are set for Music, and
-    - Image Viewer is set for Photos.
-- Appearance: tune to your liking :) 
+    - System > Users: set user photo to one you like :) 
+    - Keyboard > Keyboard Shortcuts > View and Customize Shortcuts >
+        > System:
+            - Lock screen: rebind to 'Super+Pause' ('Pausa' button on spanish keyboard)
+        > Custom Shortcuts - Add:
+            NAME                      | COMMAND                           | SHORTCUT
+            Power Off                 | gnome-session-quit --power-off    | Super+P
+            Reboot                    | gnome-session-quit --reboot       | Super+R
+            Log Out                   | gnome-session-quit --logout       | Super+L
+            Suspend                   | systemctl suspend                 | Super+S
+            Open Music Player         | audacious                         | Super+M
+    - Apps > Default Apps: make sure
+        - either Audacious or Rhythmbox are set for Music, and
+        - Image Viewer is set for Photos.
+    - Appearance: tune to your liking :) 
 
 Disks:
     - Select 1,0 TB Hard Disk (partition 2 out of 3)
@@ -545,42 +649,43 @@ Disks:
     - Click Ok, set your user password and exit.
 
 Audacious:
-- Settings > Plugins: enable
-    - General > Album Art
-    - General > Lyrics
-    - General > Search Tool
-    - Effect > Crossfade
-    - Effect > Dynamic Range Compressor
-    - Effect > Silence Removal
+    - Settings > Plugins: enable
+        - General > Album Art
+        - General > Lyrics
+        - General > Search Tool
+        - Effect > Crossfade
+        - Effect > Dynamic Range Compressor
+        - Effect > Silence Removal
 
 Rhythmbox:
-- 'Three dots' >
-    > View > Check 'Play Queue in Side Pane'
-    > Preferences >
-        > General > Visible Columns: check
-            - Year
-            - Last played
-            - Play count
-        > Playback > Player Backend: enable Crossfade and set its duration to 1 second.
-        > Music >
-            > Library Location: check 'Watch my library for new files'
-            > Library Structure > Preferred format: change it to 'MPEG Layer 3 Audio'.
-        > Plugins: enable 'ReplayGain', and in Preferences, set 'Pre-amp' to '-8,0 dB'.
+    - 'Three dots' >
+        > View > Check 'Play Queue in Side Pane'
+        > Preferences >
+            > General > Visible Columns: check
+                - Year
+                - Last played
+                - Play count
+            > Playback > Player Backend: enable Crossfade and set its duration to 1 second.
+            > Music >
+                > Library Location: check 'Watch my library for new files'
+                > Library Structure > Preferred format: change it to 'MPEG Layer 3 Audio'.
+            > Plugins: enable 'ReplayGain', and in Preferences, set 'Pre-amp' to '-8,0 dB'.
 
 Others:
-- Open Firefox and log into Mozilla, Google and GitHub (use phone and WhatsApp Web for this)
-- Apps menu: organize - group apps in folders.
+    - Open Firefox and log into Mozilla, Google and GitHub (use phone and WhatsApp Web for this)
+    - Apps menu: organize - group apps in folders.
 EOF
 
-    # Notify the user
-    if mv "$TEMP_PATH" "$TODO_PATH"; then
-        head -n 30 "$TODO_PATH"
-        echo '...'
-        echo "Post-installation to-do list has been saved to $TODO_PATH."
-    else
-        echo "ERROR: failed to save the to-do list."
+        # Notify the user
+        if mv "$TEMP_PATH" "$TODO_PATH"; then
+            head -n 30 "$TODO_PATH"
+            echo '...'
+            echo "Post-installation to-do list has been saved to $TODO_PATH."
+        else
+            echo "ERROR: failed to save the to-do list."
+        fi
     fi
-fi
+}
 
 
 # Remove temporary file used for the scripts
