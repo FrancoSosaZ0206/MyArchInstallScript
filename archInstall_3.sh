@@ -164,14 +164,16 @@ droidcam() {
         # Enable video by running this install script
         sudo ./install-video
 
+        echo -e "\nDroidCam successfully installed!\n"
+
     else # if it didn't pass the integrity check,
-        # then remove the file
-        rm -f droidcam_latest.zip
         # print a warning and move on
         echo "WARNING: DroidCam didn't pass integrity check. Could not install it." &
         sleep 2
     fi
 
+    # remove the zip file
+    rm -f droidcam_latest.zip
     cd
 }
 
