@@ -164,7 +164,8 @@ droidcam() {
         # Enable video by running this install script
         sudo ./install-video
 
-        echo -e "\nDroidCam successfully installed!\n"
+        echo -e "\nDroidCam successfully installed!\n" &
+        sleep 2
 
     else # if it didn't pass the integrity check,
         # print a warning and move on
