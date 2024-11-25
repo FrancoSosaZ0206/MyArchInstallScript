@@ -149,34 +149,14 @@ webcord() {
 droidcam() {
     echo -e "\nInstalling DroidCam...\n"
 
-    # Navigate to /tmp/
-    cd /tmp/
-    # Fetch the program compressed file
-    curl -o droidcam_latest.zip https://files.dev47apps.net/linux/droidcam_2.1.3.zip
-    # If it passes the integrity check (check this sha1sum key from website)
-    if sha1sum droidcam_latest.zip | grep -q 2646edd5ad2cfb046c9c695fa6d564d33be0f38b; then
-        # then unzip the file
-        unzip droidcam_latest.zip -d droidcam
-        # navigate to the resulting folder
-        cd droidcam
-        # Install the program
-        sudo ./install-client
-        # Enable video by running this install script
-        sudo ./install-video
-
-        echo -e "\nDroidCam successfully installed!\n" &
-        sleep 2
-
-        cd /tmp/
-
-    else # if it didn't pass the integrity check,
-        # print a warning and move on
-        echo "WARNING: DroidCam didn't pass integrity check. Could not install it." &
-        sleep 2
+    cd ~/yay/
+    if ! yay -S droidcam v4l2loopback-dc-dkms --noconfirm; then
+        echo -e "\nWARNING: could not install droidcam.\n"
+    else
+        echo -e "\nDroidCam installed successfully!\n"
     fi
 
-    # remove the zip file
-    rm -f droidcam_latest.zip
+    sleep 2
     cd
 }
 
