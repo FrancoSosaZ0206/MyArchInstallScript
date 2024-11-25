@@ -167,6 +167,8 @@ droidcam() {
         echo -e "\nDroidCam successfully installed!\n" &
         sleep 2
 
+        cd /tmp/
+
     else # if it didn't pass the integrity check,
         # print a warning and move on
         echo "WARNING: DroidCam didn't pass integrity check. Could not install it." &
