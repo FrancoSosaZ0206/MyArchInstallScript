@@ -39,17 +39,18 @@ echo "${USERNAME}:${USER_PASSWD}" | chpasswd
 # all the packages.
 
 clear
-# Enable colored output
-sed -i "s/^#Color/Color/" /etc/pacman.conf
-
-# Enable parallel downloads
-sed -i "s/^#ParallelDownloads/ParallelDownloads/" /etc/pacman.conf
-
-# Add ILoveCandy to the misc options for some extra fun
-sed -i "/^#DisableSandbox/a ILoveCandy" /etc/pacman.conf
-# Super important, of course.
-# Mhm.
-# Totally needed.
+# Enable:
+#   colored output,
+#   parallel downloads, and
+#   Add ILoveCandy for some extra fun
+#       Super important, of course.
+#       Mhm.
+#       Totally needed.
+sed -i \
+    -e "s/^#Color/Color/" \
+    -e "s/^#ParallelDownloads/ParallelDownloads/" \
+    -e "/^#DisableSandbox/a ILoveCandy" \
+    /etc/pacman.conf
 
 # Update pacman before proceeding:
 pacman -Sy --noconfirm
@@ -85,8 +86,13 @@ echo "Needed system packages installed."
 # SECTION 13 - Generating RAM Disk(s) for our Kernel(s)
 
 clear
-# Edit mkcpio config file for our encryption to work
-sed -i "s/^HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block/& encrypt lvm2/" /etc/mkinitcpio.conf
+# Edit mkcpio config file:
+#   for our encryption to work, and
+#   to add hibernation support to our system (and save power)
+sed -i "/^HOOKS=/{ \
+    s/block/& encrypt lvm2/; \
+    s/filesystems/& resume/ \
+}" /etc/mkinitcpio.conf
 
 # Generate initramfs for each of the previously installed kernels:
 mkinitcpio -p linux
@@ -99,8 +105,10 @@ mkinitcpio -p linux-lts
 
 clear
 # Set locales
-sed -i "s/^#en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
-sed -i "s/^#es_AR.UTF-8/es_AR.UTF-8/" /etc/locale.gen
+sed -i \
+    -e "s/^#en_US.UTF-8/en_US.UTF-8/" \
+    -e "s/^#es_AR.UTF-8/es_AR.UTF-8/" \
+    /etc/locale.gen
 
 # Generate locales
 locale-gen
