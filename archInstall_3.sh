@@ -656,6 +656,13 @@ Rhythmbox:
                 > Library Structure > Preferred format: change it to 'MPEG Layer 3 Audio'.
             > Plugins: enable 'ReplayGain', and in Preferences, set 'Pre-amp' to '-8,0 dB'.
 
+Visual Studio Code (optional):
+    - Sign in with your GitHub user to sync your settings.
+    - Add your GitHub username and email for committing.
+        In the VS Code's terminal, execute these commands:
+        git config -–global user.name your-user-name
+        git config -–global user.email your-email
+
 Others:
     - Open Firefox and log into necessary accounts
     - Apps menu: organize - group apps in folders.
