@@ -214,7 +214,8 @@ com.discordapp.Discord \
 org.gtk.Gtk3theme.Adwaita-dark \
 org.musicbrainz.Picard \
 com.obsproject.Studio \
-com.obsproject.Studio.Plugin.DroidCam"
+com.obsproject.Studio.Plugin.DroidCam \
+org.gnome.Solanum"
 flatpak install flathub $PACKAGES -y
 
 
