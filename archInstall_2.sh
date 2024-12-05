@@ -196,7 +196,7 @@ rfkill toggle bluetooth
 PACKAGES="firefox \
 rhythmbox audacious \
 reaper easytag qjackctl \
-gimp krita \
+gimp krita inkscape \
 vim libreoffice-fresh \
 yt-dlp \
 android-tools cyme \
