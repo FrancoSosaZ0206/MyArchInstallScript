@@ -494,6 +494,7 @@ center=0.6
 range=0.7
 
 [crossfade]
+automatic=FALSE
 length=1
 manual_length=1.5
 no_fade_in=TRUE
@@ -544,10 +545,40 @@ EOF
 misc_conf() {
     echo -e "\nConfiguring miscellaneous things...\n"
 
-    # Add global aliases for yt-dlp commands
-    echo 'alias getMusic="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\""' | sudo tee -a /etc/bash.bashrc > /dev/null
-    echo 'alias getMusicWithMetadata="yt-dlp -x --audio-format mp3 --audio-quality 0 -P ~/Music"' | sudo tee -a /etc/bash.bashrc > /dev/null
-    echo 'alias getMusicList="yt-dlp -x --audio-format mp3 --audio-quality 0 --embed-metadata -P ~/Music -o \"%(artist)s - %(title)s.%(ext)s\" -a \"/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Batch_Downloads.txt\" --download-archive \"/mnt/1TB/Franco/3. Música/2. Música Nueva/!yt-dlp/Downloaded_Files.txt\""' | sudo tee -a /etc/bash.bashrc > /dev/null
+    # Create music directories in the home music folder
+    mkdir -p "$HOME/Music/NEW"
+    mkdir -p "$HOME/Music/OLD"
+    mkdir -p "$HOME/Music/READY"
+
+    TB_MOUNTPOINT="/mnt/1TB"
+
+    # Define the paths as variables
+    local MUSIC_PATH="$HOME/Music/NEW"
+    local YT_DLP_PATH="$TB_MOUNTPOINT/Franco/3. Música/0-yt-dlp"
+    local TO_DOWNLOAD_PATH="$YT_DLP_PATH/WISHLIST.txt"
+    local DOWNLOADED_PATH="$YT_DLP_PATH/ARCHIVE.txt"
+
+    # Use cat and EOF to append the aliases to /etc/bash.bashrc
+    cat << EOF | sudo tee -a /etc/bash.bashrc > /dev/null
+
+
+# ################################################ #
+
+# USER'S MUSIC ALIASES
+# Employs yt-dlp
+
+# WHAT THEY ALL DO:
+# Download video in best audio quality,
+# extract audio,
+# convert to mp3
+# Embed metadata
+
+# Download a single track:
+alias getMusic="yt-dlp -x --audio-format mp3 --embed-metadata -P \"$MUSIC_PATH\" -o \"%(artist)s - %(title)s.%(ext)s\""
+
+# Download several tracks in batch from a file and archive it in another file
+alias getMusicList="yt-dlp -x --audio-format mp3 --embed-metadata -P \"$MUSIC_PATH\" -o \"%(artist)s - %(title)s.%(ext)s\" -a \"$TO_DOWNLOAD_PATH\" --download-archive \"$DOWNLOADED_PATH\""
+EOF
 
     echo -e "\nyt-dlp aliases set...\n"
 }
