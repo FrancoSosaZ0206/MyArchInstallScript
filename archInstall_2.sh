@@ -87,12 +87,15 @@ echo "Needed system packages installed."
 
 clear
 # Edit mkcpio config file:
+
 #   for our encryption to work, and
 #   to add hibernation support to our system (and save power)
 sed -i "/^HOOKS=/{ \
     s/block/& encrypt lvm2/; \
     s/filesystems/& resume/ \
 }" /etc/mkinitcpio.conf
+#   enable initramfs image compression (for better hibernation)
+sed -i "s/^#COMPRESSION=\"zstd\"/COMPRESSION=\"zstd\"/" /etc/mkinitcpio.conf
 
 # Generate initramfs for each of the previously installed kernels:
 mkinitcpio -p linux
