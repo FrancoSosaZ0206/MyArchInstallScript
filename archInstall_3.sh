@@ -324,6 +324,8 @@ gsettings_conf() {
     # Enable autologin for the user
     sudo sed -i "/^\[daemon\]$/a AutomaticLoginEnable=True\nAutomaticLogin=${USERNAME}" /etc/gdm/custom.conf
 
+    # Set sleep timeout to 30 minutes (1800 seconds)
+    apply_gsetting org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 1800
 
     # Set input language to Spanish and set as active:
     apply_gsetting org.gnome.desktop.input-sources sources "[('xkb', 'latam')]"
